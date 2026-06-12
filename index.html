@@ -1373,9 +1373,9 @@ async function streamAI(sys,txt,respId,histId){
   console.log('=== SYSTEM PROMPT ===\n'+sys.substring(0,300));
   console.log('=== USER MESSAGE ===\n'+txt.substring(0,200));
   try{
-    var res=await fetch('https://api.anthropic.com/v1/messages',{
+    var res=await fetch('/api/chat',{
       method:'POST',
-      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-request-check':'allow'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,stream:true,
         system:sys,
         messages:[{role:'user',content:txt}]})
