@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WireMap AI</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f7f8fc;color:#0f1117;min-height:100vh}
+:root{--navy:#0f1117;--hero:#6c47ff;--hero2:#d63384;--border:#e2e5f0;--surface:#fff;--s2:#f7f8fc;--s3:#eef0f7;--t2:#4a5068;--t3:#8b92a8;--r:12px;--rs:8px}
+nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:8px;margin-right:24px;cursor:pointer}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,#6c47ff,#d63384);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:900}
+.logo-text{font-size:15px;font-weight:700}
+.logo-sub{font-size:10px;color:#8b92a8;letter-spacing:.08em;text-transform:uppercase;display:block;line-height:1}
+.nav-tabs{display:flex;gap:2px}
+.ntab{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;color:#4a5068;border:none;background:none;cursor:pointer;transition:all .15s}
+.ntab:hover{background:#eef0f7}
+.ntab.active{background:#0f1117;color:#fff}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.btn-new{background:linear-gradient(135deg,#6c47ff,#d63384);color:#fff;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer}
+.tpill{background:rgba(45,198,83,.1);border:1px solid rgba(45,198,83,.3);color:#0a7a2a;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;display:none;align-items:center;gap:5px}
+.tdot{width:6px;height:6px;border-radius:50%;background:#2dc653;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.page{display:none}.page.active{display:block}
+.btn-p{background:linear-gradient(135deg,#6c47ff,#d63384);color:#fff;border:none;padding:9px 20px;border-radius:22px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-s{background:#fff;color:#0f1117;border:1px solid var(--border);padding:9px 20px;border-radius:22px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-g{background:none;border:1px solid var(--border);color:#4a5068;padding:7px 14px;border-radius:22px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.btn-g:hover{background:#eef0f7}
+.btn-e{background:#2dc653;color:#fff;border:none;padding:8px 16px;border-radius:22px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+/* MAP */
+.map-hero{padding:28px 32px 16px}
+.map-lbl{font-size:11px;font-weight:700;color:#6c47ff;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.map-hero h1{font-size:32px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+.map-hero p{color:#4a5068;font-size:14px;max-width:560px}
+.map-btns{display:flex;gap:10px;margin-top:16px}
+.map-tb{display:flex;align-items:center;gap:12px;padding:10px 32px;background:#fff;border-bottom:1px solid var(--border);border-top:1px solid var(--border);flex-wrap:wrap}
+.dtgl{display:flex;background:#eef0f7;border-radius:8px;padding:2px;gap:2px}
+.dtb{padding:4px 12px;border-radius:6px;border:none;font-size:12px;font-weight:500;cursor:pointer;background:none;color:#4a5068}
+.dtb.active{background:#fff;color:#0f1117;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.legend{display:flex;gap:14px;flex-wrap:wrap}
+.ldot{display:flex;align-items:center;gap:5px;font-size:12px;color:#4a5068}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.map-layout{display:grid;grid-template-columns:1fr 340px;min-height:calc(100vh - 200px)}
+.map-canvas{padding:24px;background:#fff;border-right:1px solid var(--border)}
+.map-hint{text-align:center;margin-top:8px;font-size:12px;color:#8b92a8}
+.snode{cursor:pointer}
+.scirc{transition:stroke-width .15s}
+/* STATION PANEL */
+.sp{background:#fff;overflow-y:auto;max-height:calc(100vh - 52px);position:sticky;top:52px}
+.sp-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:10px;color:#8b92a8;font-size:14px;text-align:center;padding:20px}
+.sp-hdr{padding:20px 20px 14px;border-bottom:1px solid var(--border)}
+.sp-cat{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:8px}
+.sp-title{font-size:22px;font-weight:800;margin-bottom:4px}
+.sp-desc{font-size:13px;color:#4a5068;line-height:1.5}
+.sp-live{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;margin:12px 20px;background:rgba(108,71,255,.06);border:1px solid rgba(108,71,255,.2);border-radius:var(--r);cursor:pointer}
+.sp-live:hover{background:rgba(108,71,255,.12)}
+.sp-live-t{font-size:13px;font-weight:600;color:#6c47ff}
+.sp-live-s{font-size:11px;color:#8b92a8}
+.sp-sec{padding:12px 20px;border-bottom:1px solid var(--border)}
+.sp-lbl{font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.dq{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.dqn{width:22px;height:22px;border-radius:50%;background:#0f1117;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.dqt{font-size:13px;line-height:1.5}
+.vchips{display:flex;flex-wrap:wrap;gap:6px}
+.vc{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500;border:1.5px solid}
+.vcd{border-color:#2176ff;color:#2176ff;background:#eef4ff}
+.vcp{border-color:#7c3aed;color:#7c3aed;background:#f3f0ff}
+.vcg{border-color:#f59e0b;color:#b45309;background:#fffbeb}
+.vcs{border-color:#8b92a8;color:#4a5068;background:#f7f8fc}
+.vcb{border-color:#cd7c2f;color:#92400e;background:#fff7ed}
+.pvi{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:var(--rs);border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:500;margin-bottom:6px}
+.pvi:hover{background:#f7f8fc;border-color:#c0c6d8}
+.pvb{font-size:10px;color:#8b92a8}
+/* LIVE CALL */
+.lhdr{background:#fff;border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between}
+.lml{font-size:11px;font-weight:700;color:#6c47ff;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.lhdr h2{font-size:22px;font-weight:800}
+.lhr{display:flex;align-items:center;gap:8px}
+.ltb{padding:10px 28px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.vtgl{display:flex;background:#eef0f7;border-radius:8px;padding:2px;gap:2px}
+.vtb{padding:5px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:none;color:#4a5068}
+.vtb.active{background:#6c47ff;color:#fff}
+.trail{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.trl{font-size:11px;color:#8b92a8;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.trch{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;background:#0f1117;color:#fff;cursor:pointer}
+.trch.prev{background:#eef0f7;color:#4a5068}
+.trar{color:#8b92a8;font-size:12px}
+.llayout{display:grid;grid-template-columns:1fr 300px;min-height:calc(100vh - 160px)}
+.cmain{padding:20px 24px;overflow-y:auto}
+.cscard{background:#0f1117;color:#fff;border-radius:var(--r);padding:18px 20px;margin-bottom:16px}
+.cstop{display:flex;justify-content:space-between;margin-bottom:6px}
+.cslbl{font-size:10px;font-weight:700;opacity:.6;letter-spacing:.1em;text-transform:uppercase}
+.csbdg{font-size:10px;font-weight:700;opacity:.7;letter-spacing:.06em;text-transform:uppercase}
+.cstit{font-size:24px;font-weight:800;margin-bottom:4px}
+.csdsc{font-size:13px;opacity:.7;line-height:1.4}
+.lqs{background:#fff;border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
+.lqh{padding:12px 16px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase}
+.lqi{display:flex;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);align-items:flex-start}
+.lqi:last-child{border-bottom:none}
+.lqn{width:24px;height:24px;border-radius:50%;background:#0f1117;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lqt{font-size:14px;line-height:1.55}
+.gview{display:none}
+.ocard{background:#f7f8fc;border-radius:var(--r);padding:16px;margin-bottom:14px;border:1px solid var(--border)}
+.olbl{font-size:10px;font-weight:700;color:#6c47ff;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.otxt{font-size:15px;font-style:italic;line-height:1.6}
+.bcard{background:#fff;border-radius:var(--r);border:1px solid var(--border);overflow:hidden;margin-bottom:12px}
+.bhdr{padding:10px 14px;background:#f7f8fc;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
+.bhnt{font-size:12px;color:#4a5068;font-style:italic}
+.bctr{font-size:11px;color:#8b92a8;font-weight:600}
+.bask{padding:14px 16px;border-bottom:1px solid var(--border)}
+.balbl{font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.batxt{font-size:15px;font-style:italic;line-height:1.6}
+.thsd{padding:12px 16px}
+.thlbl{font-size:11px;color:#8b92a8;font-weight:600;margin-bottom:8px}
+.rchips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rchip{padding:10px 12px;border-radius:var(--rs);border:1px solid var(--border);cursor:pointer;background:#fff;text-align:left;transition:all .15s}
+.rchip:hover{border-color:#6c47ff;background:rgba(108,71,255,.04)}
+.rchip.sel{border-color:#6c47ff;background:rgba(108,71,255,.08)}
+.chtit{font-size:13px;font-weight:600;margin-bottom:2px}
+.chsub{font-size:11px;color:#4a5068;line-height:1.4}
+.chsig{font-size:10px;font-weight:700;margin-top:4px;color:#6c47ff}
+.bnav{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border)}
+.bbtn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:#fff;font-size:12px;font-weight:500;cursor:pointer;color:#4a5068}
+.bbtn:hover{background:#f7f8fc}
+/* AI */
+.aisec{background:#fff;border-radius:var(--r);border:1px solid var(--border);margin-top:14px;overflow:hidden}
+.aihdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.aitit{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.aibdg{background:linear-gradient(135deg,#6c47ff,#d63384);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+.aiht{padding:0 16px 10px;display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto}
+.aimsg{padding:8px 10px;border-radius:var(--rs);font-size:13px;line-height:1.5}
+.aimu{background:#f7f8fc;border-left:2px solid var(--border);color:#4a5068}
+.aima{background:rgba(108,71,255,.05);border-left:2px solid #6c47ff;color:#0f1117}
+.aiia{padding:12px 16px;border-bottom:1px solid var(--border)}
+.airow{display:flex;gap:8px}
+.aiinp{flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--rs);font-size:13px;font-family:inherit;resize:none;background:#f7f8fc;color:#0f1117}
+.aiinp:focus{outline:none;border-color:#6c47ff;background:#fff}
+.aisnd{background:linear-gradient(135deg,#6c47ff,#d63384);color:#fff;border:none;padding:9px 16px;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.aisnd:disabled{opacity:.5;cursor:not-allowed}
+.aiqks{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.aiqk{padding:5px 10px;border-radius:20px;border:1px solid var(--border);background:#fff;font-size:11px;cursor:pointer;color:#4a5068}
+.aiqk:hover{border-color:#6c47ff;color:#6c47ff}
+.airesp{padding:14px 16px;min-height:80px;font-size:14px;line-height:1.6}
+.aiph{color:#8b92a8;font-size:13px;font-style:italic}
+.aithnk{display:flex;align-items:center;gap:8px;color:#8b92a8;font-size:13px}
+.dots span{display:inline-block;width:5px;height:5px;background:#6c47ff;border-radius:50%;animation:bounce 1.2s infinite;margin:0 1px}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+/* NOTES */
+.nsec{background:#fff;border-radius:var(--r);border:1px solid #f59e0b33;margin-top:14px;overflow:hidden}
+.nhdr{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ntit{font-size:12px;font-weight:700;color:#4a5068}
+.nauto{font-size:11px;color:#f59e0b;font-style:italic}
+.nta{width:100%;border:none;padding:12px 16px;font-size:13px;font-family:inherit;resize:none;min-height:80px;background:#fff;color:#0f1117}
+.nta:focus{outline:none}
+/* SIDEBAR */
+.csb{border-left:1px solid var(--border);background:#fff;padding:16px;overflow-y:auto;max-height:calc(100vh - 120px);position:sticky;top:0}
+.sbsec{margin-bottom:20px}
+.sbtit{font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.pvbtn{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border-radius:var(--rs);border:1px solid var(--border);cursor:pointer;margin-bottom:6px;background:#fff;width:100%;text-align:left}
+.pvbtn:hover{border-color:#c0c6d8;background:#f7f8fc}
+.pvbl{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500}
+.pvdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pvtp{font-size:10px;color:#8b92a8}
+.jchips{display:flex;flex-wrap:wrap;gap:5px}
+.jch{padding:4px 9px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:#fff;color:#4a5068}
+.jch:hover{background:#0f1117;color:#fff;border-color:#0f1117}
+.jch.cur{background:#0f1117;color:#fff;border-color:#0f1117}
+/* GTM OPENER PICKER */
+.gtm-pg{display:none;padding:28px 32px}
+.gtm-pg.on{display:block}
+.gtm-phase{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin-bottom:24px}
+.gtm-plbl{font-size:13px;font-weight:700;color:#6c47ff;margin-bottom:4px}
+.gtm-pdsc{font-size:13px;color:#4a5068;line-height:1.5}
+.gtm-pnote{font-size:12px;color:#8b92a8;font-style:italic;margin-top:6px}
+.gtm-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.gtm-card{border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.gtm-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.gtm-ctop{padding:20px 18px 16px}
+.gtm-ctit{font-size:17px;font-weight:800;color:#fff;margin-bottom:4px}
+.gtm-csub{font-size:12px;color:rgba(255,255,255,.8);line-height:1.4}
+.gtm-cbot{background:#fff;padding:14px 18px}
+.gtm-cscr{font-size:12px;color:#4a5068;line-height:1.5;font-style:italic;margin-bottom:10px}
+.gtag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.gtag-d{background:#d1fae5;color:#065f46}
+.gtag-l{background:#fef3c7;color:#92400e}
+/* GTM CALL SCREEN */
+.gtm-call{display:none}
+.gtm-call.on{display:block}
+/* Goal bar */
+.gbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:#fff;border:1px solid #d4f0e0;border-radius:var(--r);margin-bottom:16px;font-size:13px}
+.gbar-lbl{font-weight:700;color:#059669}
+/* Pitch card */
+.pitch{border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.pitch-in{padding:20px}
+.pitch-badge{display:inline-flex;align-items:center;background:rgba(255,255,255,.2);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:10px}
+.pitch-h{font-size:22px;font-weight:800;color:#fff;margin-bottom:14px}
+.pitch-strow{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.pitch-stlbl{font-size:11px;font-weight:700;color:rgba(255,255,255,.6);letter-spacing:.08em;text-transform:uppercase}
+.stbtn{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid rgba(255,255,255,.4);background:transparent;color:rgba(255,255,255,.6);transition:all .15s}
+.stbtn.on{border-color:#fff;background:rgba(255,255,255,.2);color:#fff}
+.pitch-sthint{font-size:11px;color:rgba(255,255,255,.5);font-style:italic}
+/* Lead-with section */
+.lwsec{background:rgba(255,255,255,.1);border-radius:var(--rs);padding:14px;margin-bottom:12px}
+.lwlbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.6);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.lwgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.lwchip{background:rgba(255,255,255,.12);border:1.5px solid transparent;border-radius:var(--rs);padding:10px 12px;cursor:pointer;text-align:left;width:100%;transition:all .15s}
+.lwchip:hover{background:rgba(255,255,255,.2)}
+.lwchip.on{border-color:#fff;background:rgba(255,255,255,.22)}
+.lwt{font-size:12px;font-weight:700;color:#fff;margin-bottom:3px}
+.lws{font-size:10px;color:rgba(255,255,255,.65);line-height:1.4}
+/* Say this */
+.saythis{background:rgba(255,255,255,.95);border-radius:var(--rs);padding:14px 16px}
+.saylbl{font-size:10px;font-weight:700;color:#6c47ff;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.saytxt{font-size:14px;line-height:1.65;color:#0f1117;font-style:italic;margin-bottom:8px}
+.mtags{display:flex;gap:6px;flex-wrap:wrap}
+.mt{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px}
+.mt-ccs{background:#d1fae5;color:#065f46}
+.mt-ch{background:#fce7f3;color:#9d174d}
+/* Response panel */
+.rp{background:#fff;border:2px solid #fef3c7;border-radius:var(--r);padding:16px}
+.rp-tit{font-size:14px;font-weight:800;color:#d97706;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.rp-sub{font-size:12px;color:#8b92a8;margin-bottom:14px}
+.rp-list{display:flex;flex-direction:column;gap:6px}
+.rpbtn{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--rs);border:1px solid var(--border);cursor:pointer;background:#fff;text-align:left;width:100%;transition:all .15s}
+.rpbtn:hover{border-color:#6c47ff;background:rgba(108,71,255,.04)}
+.rpi{font-size:14px;flex-shrink:0;margin-top:1px}
+.rptt{font-size:13px;font-weight:600;color:#0f1117;margin-bottom:2px}
+.rptip{font-size:11px;color:#4a5068;line-height:1.4}
+/* JOURNAL */
+.jpg{padding:32px}
+.jhero{margin-bottom:28px;display:flex;justify-content:space-between;align-items:flex-start}
+.jhero h1{font-size:28px;font-weight:800}
+.jhero p{color:#4a5068;font-size:14px;margin-top:4px}
+.jempty{background:#fff;border-radius:var(--r);border:2px dashed var(--border);padding:60px;text-align:center}
+.jent{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:18px 20px;margin-bottom:10px}
+.jetop{display:flex;justify-content:space-between;margin-bottom:8px}
+.jenm{font-size:16px;font-weight:700}
+.jetm{font-size:12px;color:#8b92a8}
+.jetr{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.jest{padding:2px 8px;background:#eef0f7;border-radius:10px;font-size:11px;color:#4a5068}
+.jent-n{font-size:13px;color:#4a5068;line-height:1.5}
+.jeac{display:flex;gap:8px;margin-top:12px}
+.jebtn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:#fff;color:#4a5068}
+.jebtn.danger{color:#e63946;border-color:#e63946}
+/* LIBRARY */
+.lpg{padding:28px 32px}
+.lhero{margin-bottom:20px}
+.lhero h1{font-size:28px;font-weight:800;margin-bottom:4px}
+.lhero p{color:#4a5068;font-size:14px}
+.lsrchw{position:relative;max-width:500px;margin-bottom:16px}
+.lsrch{width:100%;padding:10px 14px 10px 36px;border:1px solid var(--border);border-radius:var(--r);font-size:14px;font-family:inherit;background:#fff}
+.lsrchi{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#8b92a8}
+.lfilts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.lfbtn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-weight:500;cursor:pointer;background:#fff;color:#4a5068}
+.lfbtn.active{background:#0f1117;color:#fff;border-color:#0f1117}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.lcard{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:16px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.lcard:hover{border-color:#c0c6d8;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.lctop{position:absolute;top:0;left:0;right:0;height:3px}
+.lccat{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;margin-top:6px;display:block}
+.lctit{font-size:15px;font-weight:700;margin-bottom:4px}
+.lcdsc{font-size:12px;color:#4a5068;line-height:1.5;margin-bottom:10px}
+.lcmeta{display:flex;gap:10px;font-size:11px;color:#8b92a8}
+/* MODAL */
+.mover{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center}
+.mover.on{display:flex}
+.modal{background:#fff;border-radius:var(--r);padding:28px;width:420px;max-width:90vw}
+.modal h3{font-size:18px;font-weight:800;margin-bottom:6px}
+.modal p{font-size:13px;color:#4a5068;margin-bottom:16px}
+.modal input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--rs);font-size:14px;font-family:inherit;margin-bottom:14px}
+.modal input:focus{outline:none;border-color:#6c47ff}
+.mbtns{display:flex;gap:8px;justify-content:flex-end}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo" onclick="showPage('map')">
+    <div class="logo-icon">W</div>
+    <div><span class="logo-text">WireMap</span><span class="logo-sub">Follow the Wire</span></div>
+  </div>
+  <div class="nav-tabs">
+    <button class="ntab active" id="tab-map" onclick="showPage('map')">&#9632; Map</button>
+    <button class="ntab" id="tab-live" onclick="showPage('live')">&#128222; Live Call</button>
+    <button class="ntab" id="tab-journal" onclick="showPage('journal')">&#128203; Journal</button>
+    <button class="ntab" id="tab-library" onclick="showPage('library')">&#8801; Library</button>
+  </div>
+  <div class="nav-right">
+    <div class="tpill" id="tpill"><div class="tdot"></div><span id="tdisp">00:00</span></div>
+    <button class="btn-new">&#10022; What's New</button>
+  </div>
+</nav>
+
+<!-- MAP PAGE -->
+<div class="page active" id="page-map">
+  <div class="map-hero">
+    <div class="map-lbl">&#10022; CONVERSATION ROADMAP</div>
+    <h1>Follow the wire.</h1>
+    <p>When the conversation pivots, you don't have to. Tap any station to see discovery questions, vendors to position, and the next natural place the conversation can go.</p>
+    <div class="map-btns">
+      <button class="btn-p" onclick="startLiveCall('discovery')">&#128222; Live Discovery Call</button>
+      <button class="btn-s" onclick="startLiveCall('gtm')">&#128227; GTM Cold Call</button>
+    </div>
+  </div>
+  <div class="map-tb">
+    <span style="font-size:13px;color:#4a5068;font-weight:500">Map density:</span>
+    <div class="dtgl">
+      <button class="dtb active" id="dfocused" onclick="setDensity('focused')">&#128065; Focused</button>
+      <button class="dtb" id="dfull" onclick="setDensity('full')">&#127758; Full Web</button>
+    </div>
+    <span id="density-hint" style="font-size:12px;color:#8b92a8">Primary connections only</span>
+    <div class="legend">
+      <span class="ldot"><span class="dot" style="background:#0f1117"></span>Hero Partner</span>
+      <span class="ldot"><span class="dot" style="background:#e63946"></span>Cybersecurity</span>
+      <span class="ldot"><span class="dot" style="background:#2176ff"></span>Infrastructure</span>
+      <span class="ldot"><span class="dot" style="background:#2dc653"></span>Data Protection</span>
+      <span class="ldot"><span class="dot" style="background:#ff6b35"></span>Security</span>
+      <span class="ldot"><span class="dot" style="background:#7c3aed"></span>Cloud &amp; Productivity</span>
+      <span class="ldot"><span class="dot" style="background:#f59e0b"></span>Licensing</span>
+      <span class="ldot"><span class="dot" style="background:#ec4899"></span>Identity &amp; Compliance</span>
+      <span class="ldot"><span class="dot" style="background:#0ea5e9"></span>Collaboration</span>
+    </div>
+  </div>
+  <div class="map-layout">
+    <div class="map-canvas">
+      <svg id="msvg" viewBox="0 0 620 510" style="width:100%;height:auto">
+        <g id="wg"></g><g id="ng"></g>
+      </svg>
+      <div class="map-hint">Tap a station to open it. Hover to highlight connections.</div>
+    </div>
+    <div class="sp" id="sp">
+      <div class="sp-empty"><div style="font-size:36px">&#128506;</div><strong>Pick a starting station</strong><span style="font-size:12px;max-width:180px;line-height:1.5;color:#8b92a8">Click any topic on the map to see discovery questions, vendors, and where to go next.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- LIVE CALL PAGE -->
+<div class="page" id="page-live">
+  <!-- GTM OPENER PICKER -->
+  <div class="gtm-pg" id="gtm-pg">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#6c47ff;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">&#128227; GTM / COLD CALL MODE</div>
+        <h2 style="font-size:28px;font-weight:800">Pick your way in.</h2>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-g" onclick="showPage('map')">&#8592; Switch mode</button>
+        <button class="btn-e" onclick="endCall()">&#10022; End &amp; Save Call</button>
+      </div>
+    </div>
+    <div class="gtm-phase">
+      <div class="gtm-plbl">&#127919; Phase 1 &middot; The Opener</div>
+      <div class="gtm-pdsc">Pick the GTM angle that fits. Each opener has two pitch styles &mdash; <span style="color:#e65100;font-weight:700">Disarm-First</span> (safer, more permission-based) and <span style="color:#2176ff;font-weight:700">Direct</span> (confident, peer-energy, no apology).</div>
+      <div class="gtm-pnote">Scripts blend Cold Calling Sucks honesty + Challenger insight + Modern Consultative curiosity + Carnegie warmth.</div>
+    </div>
+    <div class="gtm-grid" id="gtm-grid"></div>
+  </div>
+  <!-- GTM CALL SCREEN -->
+  <div class="gtm-call" id="gtm-call">
+    <div class="lhdr">
+      <div>
+        <div class="lml">&#128227; GTM / COLD CALL MODE</div>
+        <h2>Deliver the opener.</h2>
+      </div>
+      <div class="lhr">
+        <button class="btn-g" onclick="backToGTM()">&#8592; Pick different opener</button>
+        <button class="btn-g" onclick="showPage('map')">Switch mode</button>
+        <button class="btn-e" onclick="endCall()">&#10022; End &amp; Save Call</button>
+      </div>
+    </div>
+    <div class="llayout">
+      <div class="cmain" id="gtm-main"></div>
+      <div class="csb" id="gtm-sb">
+        <div class="sbsec">
+          <div class="sbtit">&#128161; How did they respond?</div>
+          <div class="rp">
+            <div class="rp-tit">How did they respond?</div>
+            <div class="rp-sub">Tap the closest match.</div>
+            <div class="rp-list" id="gtm-resp"></div>
+          </div>
+        </div>
+        <div class="sbsec" style="margin-top:16px">
+          <div class="sbtit">&#8594; If they engage, jump to...</div>
+          <div id="gtm-pivots"></div>
+        </div>
+        <div class="sbsec" style="margin-top:12px">
+          <div class="sbtit">&#9889; Jump anywhere</div>
+          <div class="jchips" id="gtm-jump"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- DISCOVERY CALL SCREEN -->
+  <div id="disco" style="display:none">
+    <div class="lhdr">
+      <div>
+        <div class="lml" id="disco-lbl">&#128222; LIVE DISCOVERY CALL</div>
+        <h2>Follow the wire.</h2>
+      </div>
+      <div class="lhr">
+        <button class="btn-g" onclick="showPage('map')">&#8592; Switch mode</button>
+        <button class="btn-g" id="rstbtn" onclick="resetCall()">&#8634; Reset call</button>
+        <button class="btn-e" onclick="endCall()">&#10022; End &amp; Save Call</button>
+      </div>
+    </div>
+    <div class="ltb">
+      <div class="vtgl">
+        <button class="vtb active" id="vlist" onclick="setView('list')">&#8801; List</button>
+        <button class="vtb" id="vguided" onclick="setView('guided')">&#10022; Guided</button>
+      </div>
+      <div style="width:1px;height:20px;background:var(--border)"></div>
+      <div class="trail"><span class="trl">TRAIL:</span><div id="trd"></div></div>
+    </div>
+    <div class="llayout">
+      <div class="cmain">
+        <div class="cscard"><div class="cstop"><span class="cslbl">CURRENT STATION</span><span class="csbdg" id="cs-cat">HERO PARTNER</span></div><div class="cstit" id="cs-tit">Microsoft</div><div class="csdsc" id="cs-dsc"></div></div>
+        <div id="lview"><div class="lqs" id="lqs"></div></div>
+        <div id="gview" class="gview">
+          <div class="ocard" id="gopener"></div>
+          <div class="bcard" id="gbeat"></div>
+        </div>
+        <div class="aisec">
+          <div class="aihdr"><div class="aitit"><span class="aibdg">AI</span> Live coaching</div><span style="font-size:11px;color:#8b92a8">Powered by Claude</span></div>
+          <div class="aiht" id="aiht"></div>
+          <div class="aiia">
+            <div class="airow">
+              <textarea class="aiinp" id="aiinp" rows="2" placeholder="What just happened? e.g. They said they are happy with their current partner"></textarea>
+              <button class="aisnd" id="aisnd" onclick="askAI()">Coach me &#8594;</button>
+            </div>
+            <div class="aiqks">
+              <button class="aiqk" onclick="qAsk('They went quiet and seem disengaged')">Gone quiet</button>
+              <button class="aiqk" onclick="qAsk('They pushed back on price or value')">Price pushback</button>
+              <button class="aiqk" onclick="qAsk('They mentioned a competitor')">Competitor mention</button>
+              <button class="aiqk" onclick="qAsk('They seem very interested and asking follow-up questions')">Showing interest</button>
+              <button class="aiqk" onclick="qAsk('They said they need to involve someone else in the decision')">Need approval</button>
+              <button class="aiqk" onclick="genFU()">&#9993; Draft follow-up email</button>
+            </div>
+          </div>
+          <div class="airesp" id="airesp"><span class="aiph">Start your call, then tell me what is happening.</span></div>
+        </div>
+        <div class="nsec">
+          <div class="nhdr"><div class="ntit">&#128203; CALL NOTES</div><div class="nauto">Auto-drafted — saved to Journal when you end the call</div></div>
+          <textarea class="nta" id="cnotes" placeholder="Jot what you hear — names, agreements, pains, dollar amounts."></textarea>
+        </div>
+      </div>
+      <div class="csb">
+        <div class="sbsec"><div class="sbtit">&#8594; PIVOT TO...</div><div id="pvlist"></div></div>
+        <div class="sbsec"><div class="sbtit">&#127962; VENDORS TO POSITION</div><div class="vchips" id="sbvend"></div></div>
+        <div class="sbsec"><div class="sbtit">&#9889; JUMP ANYWHERE</div><div class="jchips" id="jchips"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JOURNAL PAGE -->
+<div class="page" id="page-journal">
+  <div class="jpg">
+    <div class="jhero">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#6c47ff;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">&#128203; CALL JOURNAL</div>
+        <h1>Every call you saved.</h1>
+        <p>Notes, signals, and trails from your past calls.</p>
+      </div>
+      <button class="btn-p" onclick="startLiveCall('discovery')">&#128222; Start a new call</button>
+    </div>
+    <div id="jlist"></div>
+  </div>
+</div>
+
+<!-- LIBRARY PAGE -->
+<div class="page" id="page-library">
+  <div class="lpg">
+    <div class="lhero">
+      <div style="font-size:11px;font-weight:700;color:#6c47ff;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">&#128218; TOPIC LIBRARY</div>
+      <h1>Browse every station.</h1>
+      <p>Search across topics, vendors, and discovery questions.</p>
+    </div>
+    <div class="lsrchw"><span class="lsrchi">&#128269;</span><input class="lsrch" id="lsrch" type="text" placeholder="Search topics, vendors, or questions..." oninput="filterLib()"></div>
+    <div class="lfilts" id="lfilts"></div>
+    <div class="lgrid" id="lgrid"></div>
+  </div>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="mover" id="smodal">
+  <div class="modal">
+    <h3>End &amp; Save Call</h3>
+    <p>Give this call a name so you can find it later.</p>
+    <input type="text" id="sname" placeholder="Account name or prospect company...">
+    <div class="mbtns">
+      <button class="btn-g" onclick="closeMod()">Cancel</button>
+      <button class="btn-e" onclick="saveCall()">Save to Journal</button>
+    </div>
+  </div>
+</div>
+<script>
+var CC={
+  'Hero Partner':'#0f1117','Cybersecurity':'#e63946','Infrastructure':'#2176ff',
+  'Data Protection':'#2dc653','Security':'#ff6b35','Cloud & Productivity':'#7c3aed',
+  'Licensing':'#f59e0b','Identity & Compliance':'#ec4899','Collaboration':'#0ea5e9'
+};
+var MP={
+  lifecycle:{x:75,y:430},networking:{x:75,y:330},datacenter:{x:130,y:230},
+  cisco:{x:195,y:275},storage:{x:210,y:165},backup:{x:295,y:215},
+  disasterrecovery:{x:265,y:295},ucaas:{x:285,y:395},cybersecurity:{x:345,y:240},
+  cloud:{x:355,y:170},microsoft:{x:445,y:165},endusercomputing:{x:385,y:360},
+  endusersecurity:{x:460,y:260},identity:{x:520,y:330},dlp:{x:535,y:250},
+  licensing:{x:565,y:170},compliance:{x:565,y:395}
+};
+var WR=[
+  ['datacenter','storage','Infrastructure',true],['datacenter','networking','Infrastructure',true],
+  ['datacenter','cisco','Infrastructure',true],['storage','backup','Infrastructure',true],
+  ['storage','microsoft','Infrastructure',false],['networking','lifecycle','Infrastructure',true],
+  ['networking','cisco','Infrastructure',true],['cisco','backup','Infrastructure',true],
+  ['cisco','cybersecurity','Infrastructure',true],['cisco','ucaas','Infrastructure',false],
+  ['backup','disasterrecovery','Data Protection',true],['backup','cybersecurity','Data Protection',true],
+  ['backup','cloud','Data Protection',false],['disasterrecovery','cloud','Data Protection',false],
+  ['disasterrecovery','storage','Data Protection',false],
+  ['cybersecurity','endusersecurity','Cybersecurity',true],['cybersecurity','dlp','Cybersecurity',true],
+  ['cybersecurity','identity','Cybersecurity',true],['cybersecurity','compliance','Cybersecurity',true],
+  ['cybersecurity','microsoft','Cybersecurity',false],['cybersecurity','cloud','Cybersecurity',false],
+  ['endusersecurity','dlp','Security',true],['endusersecurity','identity','Security',true],
+  ['endusersecurity','microsoft','Security',false],
+  ['identity','compliance','Identity & Compliance',true],['identity','dlp','Identity & Compliance',true],
+  ['identity','microsoft','Identity & Compliance',false],
+  ['cloud','microsoft','Cloud & Productivity',true],['cloud','endusercomputing','Cloud & Productivity',true],
+  ['cloud','licensing','Cloud & Productivity',false],['endusercomputing','endusersecurity','Cloud & Productivity',false],
+  ['microsoft','licensing','Licensing',true],['licensing','compliance','Licensing',false],
+  ['ucaas','microsoft','Collaboration',true],['ucaas','cisco','Collaboration',true],
+  ['ucaas','endusercomputing','Collaboration',false]
+];
+// STATIONS DATA
+var ST = {
+microsoft:{id:'microsoft',label:'Microsoft',category:'Hero Partner',desc:'Top-of-funnel GTM partner. M365, Azure, Copilot, Intune, Entra, Sentinel, Purview.',
+  questions:['Tell me about your Microsoft relationship today -- what kind of agreement are you running on (CSP, EA, MPSA) and how did you land there?','Which M365 SKUs are you standardized on (E3, E5, F-series, Business Premium)? Any mix across the org?','How much of what you\'re paying for in M365 do you feel is actually being used -- Defender, Intune, Purview, Power Platform, etc.?','What\'s your Azure consumption looking like month-over-month -- growing, flat, or quietly getting away from you?','Where is Copilot in the conversation right now -- pilot, broad rollout, or stuck in the security review?','When your current agreement comes up for renewal, what would you want to do differently this time?'],
+  vendors:[{t:'Diamond',n:'Microsoft',s:'Scale Solutions Provider'},{t:'Silver',n:'Microsoft Surface'},{t:'Bronze',n:'AvePoint',s:'M365 governance'}],
+  pivots:['licensing','cloud','endusersecurity','cybersecurity','identity','endusercomputing'],
+  beats:[
+    {hint:'Start broad. Let them describe the relationship before you steer it.',ask:'Tell me about your Microsoft relationship today -- CSP, EA, or something else -- and how you landed there?',chips:[
+      {ic:'up',ti:'On CSP, month-to-month',su:'CSP shops almost always have SKU optimization room.',sg:'CSP -- HIGH OPTIMIZATION ROOM'},
+      {ic:'up',ti:'On an EA, renews next year',su:'Renewal is the unlock -- most EAs are converting to CSP.',sg:'EA RENEWAL IN MOTION'},
+      {ic:'bl',ti:'Azure direct with Microsoft',su:'Real Softchoice opportunity to position CSP + advisory.',sg:'AZURE MCA-DIRECT -- DISPLACEMENT'},
+      {ic:'ar',ti:'Not sure, finance handles it',su:'Get the name of who owns it before you leave.',sg:''}
+    ]},
+    {hint:'Dig into the SKU mix -- this is where overlap lives.',ask:'Which M365 SKUs are you standardized on -- E3, E5, E7, or a mix?',chips:[
+      {ic:'li',ti:'Standardized on E3',su:'Most E3 shops pay for endpoint and security separately -- E5 covers it for less.',sg:'E3 -- CONSOLIDATION PLAY'},
+      {ic:'ch',ti:'Mix of E3 and E5',su:'The mix is the problem. Standardizing saves money.',sg:'MIXED SKU -- RATIONALIZATION'},
+      {ic:'bl',ti:'On E5 already',su:'Move to adoption and ROI conversation.',sg:'E5 -- ADOPTION CONVERSATION'},
+      {ic:'ne',ti:'Heard about E7',su:'Perfect entry for Copilot + security consolidation story.',sg:'E7 INTEREST'}
+    ]}
+  ]},
+cisco:{id:'cisco',label:'Cisco',category:'Hero Partner',desc:'Top-of-funnel GTM partner. Preferred across Networking, Security, Collaboration. Cisco One, EA 3.0, Hypershield, Webex.',
+  questions:['Walk me through your Cisco footprint today -- where is Cisco the backbone versus where are you running something else?','Are you on a Cisco EA 3.0? If so, when does it come up and what has been the ROI story so far?','How are you thinking about Cisco\'s AI-driven security play -- Hypershield, XDR -- are those on the roadmap?','Webex versus Teams -- where does collaboration actually live day-to-day in your org?','When did you last do a full Cisco asset review -- do you have visibility on what is end-of-support?','Who owns the Cisco relationship internally -- networking team, security team, or someone central?'],
+  vendors:[{t:'Diamond',n:'Cisco',s:'UCS / AI Infrastructure'},{t:'Gold',n:'Cisco Meraki'},{t:'Silver',n:'Splunk'}],
+  pivots:['networking','cybersecurity','endusercomputing','cloud','disasterrecovery'],
+  beats:[
+    {hint:'Frame Cisco as the backbone -- not just a vendor.',ask:'For most companies your size, Cisco is not a vendor -- it is the backbone everything else runs on. How true is that for you?',chips:[
+      {ic:'ck',ti:'Yes, Cisco is everywhere',su:'Lean into EA 3.0 and consolidation story.',sg:'CISCO-DOMINANT ENVIRONMENT'},
+      {ic:'ch',ti:'Partial -- mixed with others',su:'Find the gaps. Hypershield/XDR conversation.',sg:'HYBRID ENVIRONMENT'},
+      {ic:'cy',ti:'Moving away from Cisco',su:'Understand why. Retention or competitive play.',sg:'CISCO CHURN RISK'},
+      {ic:'ar',ti:'Mainly for networking only',su:'Open door to security and collaboration expansion.',sg:'NETWORKING-ONLY -- EXPANSION OPP'}
+    ]}
+  ]},
+cybersecurity:{id:'cybersecurity',label:'Cybersecurity',category:'Cybersecurity',desc:'The board-level conversation. Posture, frameworks, Zero Trust, ransomware readiness, MDR/SOC, cyber insurance.',
+  questions:['Walk me through your current security posture -- do you have a framework you are aligned to (NIST, CIS, ISO)?','Where are you on the Zero Trust journey -- identity-first, network segmentation, or still building the foundation?','Cyber insurance came up for a lot of our customers this year -- have your carrier requirements changed recently?','Are you running MDR/SOC today, or is threat detection still handled internally?','What does your ransomware recovery story look like -- have you tested it?','Who owns the security conversation at the board level -- CISO, CIO, or is it still bubbling up?'],
+  vendors:[{t:'Diamond',n:'CrowdStrike',s:'EDR/XDR'},{t:'Diamond',n:'Cisco',s:'Hypershield / XDR'},{t:'Platinum',n:'SentinelOne'},{t:'Gold',n:'Mimecast'},{t:'Silver',n:'KnowBe4'}],
+  pivots:['endusersecurity','dlp','identity','compliance','microsoft','cloud'],
+  beats:[
+    {hint:'Board-level urgency is the opener. Lead with insurance.',ask:'Cyber insurance carriers tightened their controls again this quarter -- has that changed anything in your environment or at the board level?',chips:[
+      {ic:'fi',ti:'Yes, we had to add controls',su:'Qualify what controls. This is the posture conversation.',sg:'INSURANCE-DRIVEN -- HIGH URGENCY'},
+      {ic:'ch',ti:'We are in renewal this year',su:'Perfect time for a security posture assessment.',sg:'INSURANCE RENEWAL -- ASSESSMENT OPP'},
+      {ic:'bl',ti:'We have a strong posture',su:'Ask about Zero Trust maturity and MDR coverage.',sg:'MATURE POSTURE -- ELEVATE CONVERSATION'},
+      {ic:'ar',ti:'Not a focus right now',su:'Surface a recent breach story in their industry.',sg:'LOW URGENCY -- EDUCATE'}
+    ]}
+  ]},
+datacenter:{id:'datacenter',label:'Datacenter Hardware',category:'Infrastructure',desc:'Servers, compute, hyperconverged platforms, GPUs, and the physical backbone of on-prem and colo environments.',
+  questions:['Walk me through your datacenter footprint -- how many sites, on-prem vs colo vs cloud, roughly how many servers?','What is your primary compute platform today (Dell, HPE, Cisco UCS, Nutanix, VxRail) and how old is the bulk of it?','Where are you in the refresh cycle -- anything end-of-life or end-of-support in production?','How much of the environment is virtualized, and what hypervisor -- VMware, Hyper-V, Nutanix AHV? Has the Broadcom situation changed any plans?','Are GPUs and AI infrastructure on the roadmap, or still a someday conversation?','Who owns the refresh decision -- infrastructure, finance, the CIO?'],
+  vendors:[{t:'Diamond',n:'Lenovo DC'},{t:'Diamond',n:'Cisco',s:'UCS / AI Infrastructure'},{t:'Platinum',n:'Dell (Hybrid Cloud)'},{t:'Platinum',n:'HPE'},{t:'Gold',n:'IBM HW'},{t:'Silver',n:'Schneider Electric'}],
+  pivots:['storage','networking','disasterrecovery','lifecycle'],
+  beats:[
+    {hint:'Start with the footprint -- size and age unlocks the rest.',ask:'Walk me through your datacenter footprint -- how many sites, on-prem vs colo vs cloud?',chips:[
+      {ic:'bu',ti:'Mostly on-prem, single site',su:'Ask about refresh cycle and Broadcom/VMware situation.',sg:'ON-PREM HEAVY -- REFRESH CONVERSATION'},
+      {ic:'cl',ti:'Hybrid -- on-prem and cloud',su:'Dig into the cloud migration roadmap.',sg:'HYBRID -- MODERNIZATION PLAY'},
+      {ic:'ar',ti:'Moving to colo or cloud',su:'Lifecycle and support conversation for remaining on-prem.',sg:'CLOUD-FIRST -- LIFECYCLE PLAY'},
+      {ic:'bl',ti:'Multi-site, complex',su:'HCI and hyperconverged conversation.',sg:'MULTI-SITE -- HCI PLAY'}
+    ]}
+  ]},
+storage:{id:'storage',label:'Storage',category:'Infrastructure',desc:'Primary, secondary, and object storage -- capacity planning, performance tiers, and data growth.',
+  questions:['What is your primary storage platform today and how old is the bulk of it?','Are you seeing data growth outpacing your current capacity plan?','How are you handling unstructured data -- NAS, object storage, or cloud tiering?','What does your backup-to-storage relationship look like -- all on-prem or tiering to cloud?','Have you looked at NVMe or flash-based storage yet, or still mostly spinning disk?'],
+  vendors:[{t:'Diamond',n:'NetApp'},{t:'Platinum',n:'Pure Storage'},{t:'Gold',n:'Dell EMC'}],
+  pivots:['datacenter','backup','networking','disasterrecovery'],
+  beats:[
+    {hint:'Lead with data growth -- it is the universal pain.',ask:'Is your storage environment keeping pace with data growth, or is capacity planning becoming a quarterly conversation?',chips:[
+      {ic:'fi',ti:'Struggling with growth',su:'Capacity planning and tiering conversation.',sg:'STORAGE CAPACITY -- HIGH URGENCY'},
+      {ic:'ch',ti:'Managing but aging hardware',su:'Refresh and NVMe/flash opportunity.',sg:'AGING STORAGE -- REFRESH OPP'},
+      {ic:'ck',ti:'Recently refreshed',su:'Ask about backup and DR strategy.',sg:'RECENTLY REFRESHED -- PIVOT TO BACKUP'},
+      {ic:'ar',ti:'Moving to cloud storage',su:'Object storage and tiering conversation.',sg:'CLOUD STORAGE INTEREST'}
+    ]}
+  ]},
+networking:{id:'networking',label:'Networking',category:'Infrastructure',desc:'LAN, WAN, SD-WAN, wireless, load balancing, and the connectivity that ties everything together.',
+  questions:['Walk me through your network architecture -- campus LAN, WAN, SD-WAN, or still running MPLS?','How is remote work changing your network requirements -- split tunneling, ZTNA, SASE?','Where are you with wireless -- Wi-Fi 6/6E deployed or still on older access points?','Who manages the network -- internal team, MSP, or a mix?','Is network modernization on the roadmap, or more of a keep-the-lights-on budget?'],
+  vendors:[{t:'Diamond',n:'Cisco',s:'Meraki / Catalyst'},{t:'Platinum',n:'Juniper'},{t:'Gold',n:'Aruba HPE'},{t:'Silver',n:'Fortinet',s:'SD-WAN'}],
+  pivots:['datacenter','cybersecurity','cisco','cloud','lifecycle'],
+  beats:[
+    {hint:'SD-WAN is the modernization hook right now.',ask:'Are you still running MPLS for WAN connectivity, or have you made the move to SD-WAN?',chips:[
+      {ic:'cy',ti:'Still on MPLS',su:'Strong SD-WAN ROI story. Cost and agility.',sg:'MPLS -- SD-WAN DISPLACEMENT'},
+      {ic:'ch',ti:'Partial SD-WAN rollout',su:'Ask about full coverage and cloud on-ramps.',sg:'PARTIAL SD-WAN -- EXPANSION'},
+      {ic:'ck',ti:'Fully on SD-WAN',su:'SASE and security convergence conversation.',sg:'SD-WAN COMPLETE -- SASE PLAY'},
+      {ic:'ar',ti:'Not sure, MSP manages it',su:'Find out who the MSP is.',sg:'MSP-MANAGED -- INVESTIGATE'}
+    ]}
+  ]},
+backup:{id:'backup',label:'Backup',category:'Data Protection',desc:'Data protection, snapshots, retention policies, immutability, and the operational side of keeping data safe.',
+  questions:['What is your primary backup solution today and when did you last test a full restore?','Are you using immutable backups -- is air-gapping part of your ransomware recovery story?','What is your RTO and RPO today? Are those written down?','How much of your backup is on-prem versus cloud or off-site?','Have you looked at backup consolidation -- a lot of customers run three or four tools?'],
+  vendors:[{t:'Diamond',n:'Veeam'},{t:'Platinum',n:'Zerto'},{t:'Platinum',n:'Cohesity'},{t:'Gold',n:'Rubrik'},{t:'Silver',n:'Commvault'}],
+  pivots:['disasterrecovery','storage','cybersecurity','cloud'],
+  beats:[
+    {hint:'The last restore test is always the uncomfortable question.',ask:'When did you last actually test a full restore from backup -- not just verify the job ran?',chips:[
+      {ic:'di',ti:'Honestly it has been a while',su:'This is the opening. Offer a backup assessment.',sg:'UNTESTED BACKUP -- HIGH RISK'},
+      {ic:'ch',ti:'We test quarterly',su:'Dig into RTO/RPO and immutability.',sg:'MATURE BACKUP -- ELEVATE CONVERSATION'},
+      {ic:'fi',ti:'We had a scare recently',su:'Move fast. DR and immutability conversation.',sg:'RECENT INCIDENT -- URGENT OPP'},
+      {ic:'ar',ti:'MSP handles our backup',su:'Ask if they have SLA guarantees and tested it.',sg:'MSP-MANAGED BACKUP'}
+    ]}
+  ]},
+disasterrecovery:{id:'disasterrecovery',label:'Disaster Recovery',category:'Data Protection',desc:'Business continuity, failover strategy, RTO/RPO objectives, and resilience testing.',
+  questions:['Do you have a formal DR plan today -- written, tested, and owned by someone?','What is your RTO -- if production went down right now, how long until you are back up?','Is DR a full secondary datacenter, cloud failover, or something else?','When did you last run a DR drill or tabletop exercise?','Is your DR strategy ransomware-aware -- can an attacker encrypt your recovery environment too?'],
+  vendors:[{t:'Diamond',n:'Zerto'},{t:'Platinum',n:'Veeam',s:'DR orchestration'},{t:'Gold',n:'VMware SRM'},{t:'Silver',n:'Commvault'}],
+  pivots:['backup','cybersecurity','storage','cloud'],
+  beats:[
+    {hint:'RTO is the gut-check question. Most do not know the real number.',ask:'If production went down right now -- ransomware, hardware failure, anything -- how long until you are actually back up and running?',chips:[
+      {ic:'di',ti:'Hours to days, honestly',su:'Strong DR modernization conversation.',sg:'HIGH RTO -- DR MODERNIZATION OPP'},
+      {ic:'ch',ti:'We have an RTO target but have not tested it',su:'Tabletop exercise offer.',sg:'UNTESTED RTO -- ASSESSMENT OPP'},
+      {ic:'ck',ti:'Sub-hour, cloud failover',su:'Validate it is ransomware-aware.',sg:'MATURE DR -- VALIDATE COVERAGE'},
+      {ic:'ar',ti:'DR is on the roadmap',su:'Budget and timeline conversation.',sg:'DR PLANNED -- TIMELINE OPP'}
+    ]}
+  ]},
+endusersecurity:{id:'endusersecurity',label:'End User Security',category:'Security',desc:'Endpoint protection, EDR/XDR, email security, MDR -- protecting the user attack surface.',
+  questions:['What is your endpoint protection story today -- legacy AV, EDR, or full XDR?','How are you handling email security -- native M365 Defender, or a third-party layer on top?','Do you have MDR coverage, or is threat detection and response still handled internally?','What is your phishing simulation and security awareness training cadence?','How are you thinking about the consolidation play -- CrowdStrike versus Defender versus SentinelOne?'],
+  vendors:[{t:'Diamond',n:'CrowdStrike',s:'EDR/XDR'},{t:'Platinum',n:'Microsoft Defender'},{t:'Platinum',n:'SentinelOne'},{t:'Gold',n:'Mimecast'},{t:'Silver',n:'Proofpoint'}],
+  pivots:['cybersecurity','dlp','identity','microsoft','cloud'],
+  beats:[
+    {hint:'Lead with the consolidation question -- most are over-tooled.',ask:'How many endpoint security tools are you running right now -- and are they actually integrated, or just coexisting?',chips:[
+      {ic:'wr',ti:'Three or more tools, not integrated',su:'This is the consolidation play. XDR story.',sg:'OVER-TOOLED -- CONSOLIDATION OPP'},
+      {ic:'ch',ti:'Defender only, Microsoft-native',su:'Ask about EDR coverage depth and MDR.',sg:'DEFENDER-NATIVE -- DEEPEN COVERAGE'},
+      {ic:'ck',ti:'CrowdStrike or SentinelOne',su:'Ask about MDR and cross-domain correlation.',sg:'EDR MATURE -- MDR CONVERSATION'},
+      {ic:'ar',ti:'Outsourced to MSP',su:'Understand coverage scope and SLA.',sg:'OUTSOURCED -- COVERAGE GAPS?'}
+    ]}
+  ]},
+dlp:{id:'dlp',label:'DLP',category:'Security',desc:'Data Loss Prevention -- protecting sensitive data in motion, at rest, and in use.',
+  questions:['Do you have DLP controls in place today -- for email, endpoint, and cloud?','What data classification framework are you using, if any?','How are you handling sensitive data in M365 -- is Purview in the picture?','Is insider threat on the radar, or is DLP purely about external exposure?','Have you had a data leakage incident or near-miss that drove the DLP conversation?'],
+  vendors:[{t:'Diamond',n:'Microsoft Purview'},{t:'Platinum',n:'Forcepoint'},{t:'Gold',n:'Symantec DLP'},{t:'Silver',n:'Digital Guardian'}],
+  pivots:['cybersecurity','identity','compliance','microsoft','endusersecurity'],
+  beats:[
+    {hint:'Data classification gates everything -- start there.',ask:'Most orgs buy Copilot licenses, flip them on, then realize their data classification is not ready. Where would you put yours honestly?',chips:[
+      {ic:'di',ti:'Not classified at all',su:'This is the Purview/data governance conversation.',sg:'UNCLASSIFIED DATA -- HIGH RISK'},
+      {ic:'ch',ti:'Partially classified',su:'Ask about Copilot plans and M365 E5 coverage.',sg:'PARTIAL CLASSIFICATION -- PURVIEW OPP'},
+      {ic:'ck',ti:'Classified and governed',su:'Ask about DLP policy enforcement and insider threat.',sg:'MATURE CLASSIFICATION -- POLICY DEPTH'},
+      {ic:'ar',ti:'Compliance team owns it',su:'Get the compliance team in the conversation.',sg:'COMPLIANCE-LED -- EXPAND STAKEHOLDERS'}
+    ]}
+  ]},
+cloud:{id:'cloud',label:'Cloud',category:'Cloud & Productivity',desc:'Public cloud (Azure, AWS, GCP), hybrid strategy, FinOps, AI infrastructure, and migration.',
+  questions:['What is your current cloud mix -- Azure, AWS, GCP, or hybrid?','Are you managing cloud spend actively, or has it been growing faster than expected?','Where are you on the migration journey -- lift-and-shift done, or still moving workloads?','How are you thinking about AI workloads -- GPU infrastructure, Azure OpenAI, or still evaluating?','Who owns cloud governance -- is there a FinOps practice in place?'],
+  vendors:[{t:'Diamond',n:'Microsoft Azure'},{t:'Diamond',n:'AWS'},{t:'Platinum',n:'Google Cloud'},{t:'Gold',n:'VMware Cloud'}],
+  pivots:['microsoft','cybersecurity','endusercomputing','datacenter','licensing'],
+  beats:[
+    {hint:'Cloud spend growth is always the hook.',ask:'Is your cloud spend growing in line with what you budgeted, or has it been quietly outpacing the plan?',chips:[
+      {ic:'up',ti:'Growing faster than expected',su:'FinOps and cloud governance conversation.',sg:'CLOUD SPEND RUNAWAY -- FINOPS OPP'},
+      {ic:'ch',ti:'We are managing it actively',su:'Ask about AI workloads and next migrations.',sg:'CLOUD GOVERNED -- AI/MIGRATION OPP'},
+      {ic:'cy',ti:'Still mostly on-prem',su:'Cloud readiness assessment opportunity.',sg:'ON-PREM HEAVY -- CLOUD ASSESSMENT'},
+      {ic:'ck',ti:'Cloud-first, well-optimized',su:'AI infrastructure and Copilot conversation.',sg:'CLOUD-MATURE -- AI/COPILOT READY'}
+    ]}
+  ]},
+licensing:{id:'licensing',label:'Licensing',category:'Licensing',desc:'Agreements, true-ups, optimization, audits, and getting more value out of what is already paid for.',
+  questions:['Walk me through your biggest software agreements right now -- Microsoft, Adobe, Cisco, VMware/Broadcom?','When is your next major true-up or renewal, and are you confident you are not over-licensed?','Has the Broadcom/VMware situation changed your licensing posture or budget?','Are you running any publisher audits or SAM tools to stay ahead of compliance?','Where do you feel you are getting the least value per dollar in your current software spend?'],
+  vendors:[{t:'Diamond',n:'Microsoft',s:'Scale Solutions'},{t:'Platinum',n:'Adobe'},{t:'Gold',n:'Ivanti SAM'},{t:'Silver',n:'Snow Software'}],
+  pivots:['microsoft','cloud','endusercomputing','compliance'],
+  beats:[
+    {hint:'The Broadcom/VMware situation is the universal opener right now.',ask:'Has the Broadcom acquisition of VMware changed anything in your licensing strategy or budget conversations?',chips:[
+      {ic:'fi',ti:'Yes, it is a big problem',su:'Displacement and migration conversation.',sg:'BROADCOM PAIN -- URGENT OPP'},
+      {ic:'ch',ti:'Watching it, not sure yet',su:'Share what peers are doing. Assessment opportunity.',sg:'BROADCOM WATCH -- ASSESSMENT OPP'},
+      {ic:'bl',ti:'We have already migrated away',su:'Ask where they went and open renegotiation story.',sg:'POST-MIGRATION -- RENEGOTIATION'},
+      {ic:'ar',ti:'Not our area, IT manages it',su:'Find the economic buyer.',sg:'EXPAND STAKEHOLDERS'}
+    ]}
+  ]},
+endusercomputing:{id:'endusercomputing',label:'End User Computing',category:'Cloud & Productivity',desc:'Devices, VDI, DaaS, MDM, and the experience your end users have day-to-day.',
+  questions:['What does your device estate look like -- PC, Mac, mobile, or mixed?','How are you managing endpoints -- Intune, SCCM, Jamf, or something else?','Are you running VDI today, or has DaaS (Windows 365, AVD) come up?','What is your device refresh cycle -- and is it tied to Windows 11 migration?','How is the hybrid work model changing your device and desktop strategy?'],
+  vendors:[{t:'Diamond',n:'Microsoft',s:'Intune / W365'},{t:'Platinum',n:'Lenovo'},{t:'Platinum',n:'HP'},{t:'Gold',n:'Dell Devices'},{t:'Silver',n:'Jamf'}],
+  pivots:['microsoft','endusersecurity','cloud','licensing','identity'],
+  beats:[
+    {hint:'Windows 11 and device refresh is the timing play right now.',ask:'Where are you with the Windows 11 migration -- is that driving a device refresh conversation, or is it being deferred?',chips:[
+      {ic:'cl',ti:'Behind on Windows 11',su:'Device refresh plus managed upgrade story.',sg:'WIN11 BEHIND -- DEVICE REFRESH OPP'},
+      {ic:'ch',ti:'In progress, partial rollout',su:'Intune management and modern deployment.',sg:'WIN11 IN-PROGRESS -- INTUNE PLAY'},
+      {ic:'ck',ti:'Mostly done',su:'Ask about DaaS and Copilot+ PC readiness.',sg:'WIN11 COMPLETE -- COPILOT+ PC OPP'},
+      {ic:'ar',ti:'We defer OS decisions to IT',su:'Find the desktop team.',sg:'EXPAND TO DESKTOP TEAM'}
+    ]}
+  ]},
+identity:{id:'identity',label:'Identity',category:'Identity & Compliance',desc:'IAM, SSO, MFA, privileged access, and the identity perimeter.',
+  questions:['What is your identity foundation today -- Active Directory, Entra ID, Okta, or a mix?','Where are you with MFA coverage -- is it enforced everywhere, or still selective?','How are you handling privileged access -- PAM solution in place?','Is identity a security conversation or an IT operations conversation in your org?','Have you had any identity-based incidents -- credential stuffing, phishing that got in?'],
+  vendors:[{t:'Diamond',n:'Microsoft Entra'},{t:'Platinum',n:'Okta'},{t:'Platinum',n:'CyberArk',s:'PAM'},{t:'Gold',n:'BeyondTrust'}],
+  pivots:['cybersecurity','endusersecurity','compliance','microsoft','dlp'],
+  beats:[
+    {hint:'MFA coverage is almost always incomplete. That is the entry.',ask:'Is MFA enforced everywhere in your environment, or are there still gaps -- legacy apps, VPN, service accounts?',chips:[
+      {ic:'di',ti:'Gaps, especially legacy apps',su:'Conditional Access and Entra ID story.',sg:'MFA GAPS -- IDENTITY MODERNIZATION'},
+      {ic:'ch',ti:'Mostly covered, some exceptions',su:'Ask about privileged access and PAM.',sg:'PARTIAL MFA -- PAM CONVERSATION'},
+      {ic:'ck',ti:'Fully enforced, SSPR in place',su:'Zero Trust and passwordless conversation.',sg:'MFA MATURE -- ZERO TRUST PLAY'},
+      {ic:'ar',ti:'We had an incident',su:'Fast-track the identity assessment offer.',sg:'POST-INCIDENT -- URGENT OPP'}
+    ]}
+  ]},
+compliance:{id:'compliance',label:'Compliance',category:'Identity & Compliance',desc:'Frameworks, audits, governance, vulnerability management, and turning regulatory pressure into roadmap.',
+  questions:['What compliance frameworks are you working toward -- SOC 2, HIPAA, PCI, NIST, or something else?','Are you in an active audit cycle, or is compliance more of a continuous readiness conversation?','How are you handling vulnerability management -- is there a formal scanning and patching cadence?','Who owns compliance internally -- CISO, legal, or a dedicated GRC function?','Have you had a compliance finding or audit gap that created urgency?'],
+  vendors:[{t:'Diamond',n:'Microsoft Purview'},{t:'Platinum',n:'Qualys'},{t:'Gold',n:'Rapid7'},{t:'Silver',n:'Tenable'}],
+  pivots:['cybersecurity','identity','dlp','endusersecurity'],
+  beats:[
+    {hint:'Active audit pressure is the fastest opener.',ask:'Are you in an active audit cycle right now, or is compliance more of a continuous readiness posture?',chips:[
+      {ic:'fi',ti:'Active audit, deadline soon',su:'Fast-track. Assessment and remediation story.',sg:'ACTIVE AUDIT -- URGENT'},
+      {ic:'ch',ti:'Preparing for upcoming audit',su:'Gap assessment and continuous compliance conversation.',sg:'AUDIT PREP -- ASSESSMENT OPP'},
+      {ic:'bl',ti:'Continuous readiness posture',su:'Mature conversation. Ask about framework gaps.',sg:'COMPLIANCE-MATURE -- FRAMEWORK DEPTH'},
+      {ic:'ar',ti:'Compliance is on the roadmap',su:'Timeline and budget conversation.',sg:'COMPLIANCE PLANNED -- TIMELINE OPP'}
+    ]}
+  ]},
+ucaas:{id:'ucaas',label:'UCaaS & Collaboration',category:'Collaboration',desc:'Unified communications, contact center, video conferencing, meeting room hardware, and the modern workplace.',
+  questions:['What does collaboration look like day-to-day -- Teams, Webex, Zoom, or a mix?','Are you running a contact center, and if so -- cloud-based or still on-prem?','How are your meeting rooms set up -- certified hardware for Teams or Webex, or ad-hoc?','Is UCaaS consolidated, or are you paying for multiple platforms that overlap?','How is the phone system handled -- still on legacy PBX, or fully moved to cloud calling?'],
+  vendors:[{t:'Diamond',n:'Microsoft Teams',s:'Calling + Rooms'},{t:'Diamond',n:'Cisco Webex'},{t:'Platinum',n:'Poly/HP',s:'Meeting rooms'},{t:'Gold',n:'Zoom'},{t:'Silver',n:'Vonage'}],
+  pivots:['microsoft','cisco','endusercomputing','cloud'],
+  beats:[
+    {hint:'Platform sprawl is the entry -- most pay for Teams AND Zoom AND Webex.',ask:'How many collaboration platforms are you actually paying for right now -- and do the same people use all of them?',chips:[
+      {ic:'mo',ti:'Paying for multiple platforms',su:'Consolidation story. ROI is immediate.',sg:'COLLAB SPRAWL -- CONSOLIDATION OPP'},
+      {ic:'ch',ti:'Teams-only, some complaints',su:'Adoption and calling plan conversation.',sg:'TEAMS-ONLY -- ADOPTION/CALLING'},
+      {ic:'ck',ti:'Webex-standardized',su:'Ask about room hardware and calling integration.',sg:'WEBEX STANDARD -- HARDWARE OPP'},
+      {ic:'ar',ti:'Still on legacy phone system',su:'Cloud calling migration story.',sg:'LEGACY PBX -- CLOUD CALLING'}
+    ]}
+  ]},
+lifecycle:{id:'lifecycle',label:'Lifecycle & Support',category:'Infrastructure',desc:'Post-warranty OEM-extension support and the refresh-vs-extend decision. Park Place / TPM economics, EOSL.',
+  questions:['What does your current support coverage look like for out-of-warranty gear -- still paying OEM rates?','Do you have visibility on what is reaching end-of-support-life in the next 12-18 months?','Have you explored third-party maintenance as a way to extend the life of hardware before full refresh?','What is the decision process for refresh vs extend -- who owns it and what triggers it?','Are there specific platforms where OEM support is costing you significantly more than the hardware is worth?'],
+  vendors:[{t:'Diamond',n:'Park Place Technologies'},{t:'Platinum',n:'Curvature'},{t:'Gold',n:'CentriLogic'}],
+  pivots:['datacenter','storage','networking'],
+  beats:[
+    {hint:'The money question is always the opener here.',ask:'Are you still paying OEM support rates on hardware that is two or three refreshes old -- and has anyone done the math on what third-party maintenance would save?',chips:[
+      {ic:'mo',ti:'Yes, significant OEM spend',su:'Park Place / TPM story. 40-60% savings play.',sg:'OEM OVERSPEND -- TPM OPP'},
+      {ic:'ch',ti:'We do not have full visibility',su:'Asset discovery and EOSL review offer.',sg:'EOSL BLIND SPOT -- DISCOVERY OPP'},
+      {ic:'cy',ti:'Refresh is already planned',su:'Ask about timeline and what is being replaced.',sg:'REFRESH PLANNED -- TIMELINE OPP'},
+      {ic:'ar',ti:'We extend through OEM',su:'Share the savings math. TPM comparison.',sg:'OEM-LOCKED -- EDUCATE ON TPM'}
+    ]}
+  ]}
+};
+
+// GTM DATA
+var GO=[
+  {id:'microsoft',label:'Microsoft-Led',sub:'How your overall Microsoft relationship is being managed -- licensing, funded assessments, optimization, Copilot',grad:'linear-gradient(135deg,#2563eb,#1d4ed8)',depth:'deep',
+    disarm:'Kaleb at Softchoice -- quick one. I am not pitching a product. I am calling about how your overall Microsoft relationship is being managed today -- licensing, optimization, maybe Copilot. Most folks I talk to are either overpaying or underleveraging. Mind if I ask two questions to see if it is even relevant?',
+    direct:'Kaleb -- Softchoice. Quick one. Most companies your size are running E3 but paying for E5-level security separately. I am calling to find out if that is true for you. Two questions and I will know. Fair?',
+    station:'microsoft'},
+  {id:'cisco',label:'Cisco-Led',sub:'How the Cisco backbone is showing up in your environment -- networking, security, Splunk, Webex, EA 3.0',grad:'linear-gradient(135deg,#1a1d2e,#0f1117)',depth:'deep',
+    disarm:'Kaleb at Softchoice -- quick one. For most companies your size, Cisco is not a vendor -- it is the backbone everything else runs on. I am calling about how that backbone is being managed today. Two questions and I will know if it is worth a conversation.',
+    direct:'Kaleb -- Softchoice. Most Cisco shops are sitting on EA 3.0 potential they are not capturing. I am calling to find out if that is true for you. Fair?',
+    station:'cisco'},
+  {id:'modernization',label:'Modernization',sub:'Infrastructure, apps, and cloud -- the move-forward conversation',grad:'linear-gradient(135deg,#7c3aed,#d63384)',depth:'light',
+    disarm:'Kaleb at Softchoice -- quick one. Most orgs treat datacenter refresh, cloud migration, and app modernization as three separate projects with three separate budgets. I am calling about whether that is true for you. Two questions.',
+    direct:'Kaleb -- Softchoice. Most companies your size are in the middle of a modernization cycle but doing it in silos. I am calling to find out if that is costing you. Fair?',
+    station:'datacenter'},
+  {id:'cybersecurity',label:'Cybersecurity-Led',sub:'Board-level urgency, breach triggers, insurance pressure',grad:'linear-gradient(135deg,#dc2626,#b91c1c)',depth:'light',
+    disarm:'Kaleb at Softchoice -- quick one. Cyber insurance carriers tightened their controls again this quarter and it is changing what IT teams are being asked to prove. I am calling to find out if that has landed on your desk yet. Two questions.',
+    direct:'Kaleb -- Softchoice. Board-level pressure on security is at an all-time high and most teams I talk to are dealing with it with a patchwork of tools. I am calling to find out if that is true for you.',
+    station:'cybersecurity'},
+  {id:'ai',label:'AI / Copilot Readiness',sub:'The hottest opener -- data classification gates everything',grad:'linear-gradient(135deg,#d97706,#b45309)',depth:'light',
+    disarm:'Kaleb at Softchoice -- quick one. Most orgs buy Copilot licenses, flip them on, then realize their data classification is not ready and it becomes a security conversation. I am calling to find out where you are on that curve.',
+    direct:'Kaleb -- Softchoice. Copilot readiness is the conversation right now. Most orgs are not ready and do not know it yet. Two questions and I will tell you where you stand.',
+    station:'cloud'},
+  {id:'vendor',label:'Vendor Consolidation',sub:'You are paying CrowdStrike plus Okta plus Mimecast on top of E3...',grad:'linear-gradient(135deg,#059669,#047857)',depth:'light',
+    disarm:'Kaleb at Softchoice -- quick one. Most orgs your size are paying for three to five specialty security vendors -- CrowdStrike, Okta, Mimecast -- on top of an M365 license that already covers most of that. I am calling to find out if that is true for you.',
+    direct:'Kaleb -- Softchoice. You are probably paying twice for security. M365 E5 covers what CrowdStrike, Okta, and Mimecast do -- at a fraction of the cost. Two questions to find out if that is true for you.',
+    station:'licensing'}
+];
+
+var LA={
+  microsoft:[
+    {id:'rel',ti:'Relationship management',su:'Default — broadest opener.',disarm:'Kaleb at Softchoice — quick one. I am not pitching anything. I am calling about how your Microsoft relationship is actually being managed today — licensing, optimization, Copilot. Most shops I talk to are either overpaying or underleveraging. Two questions to see if it is even worth a conversation. Fair?',direct:'Kaleb — Softchoice. Most companies your size are running Microsoft agreements that nobody is actively managing. Licenses stacking up, features going unused. Two questions to find out if that is true for you. Fair?'},
+    {id:'ass',ti:'Funded assessments',su:'Large enough to qualify.',disarm:'Kaleb at Softchoice — quick one. Microsoft funds assessments for organizations your size — licensing optimization, security posture, Copilot readiness — fully covered, no cost to you. Most IT teams have no idea that exists. Two questions to see if you qualify. Fair?',direct:'Kaleb — Softchoice. You are probably leaving Microsoft funding on the table. Fully funded assessments for licensing, security, and AI readiness — most companies your size qualify and never claim it. Two questions to find out. Fair?'},
+    {id:'opt',ti:'Ongoing optimization',su:'Stable IT, no recent reviews.',disarm:'Kaleb at Softchoice — quick one. Most Microsoft environments that have been stable for a while are quietly accumulating waste — duplicate licenses, unused features, overlapping tools. Two questions to see if that sounds familiar. Fair?',direct:'Kaleb — Softchoice. Stable Microsoft environments are the most expensive ones. Nobody is watching the meter. Licenses stack, features go unused, costs drift up. Two questions to find out if that is your situation. Fair?'},
+    {id:'lic',ti:'Licensing updates',su:'EA renewal in next 12 months.',disarm:'Kaleb at Softchoice — quick one. Microsoft licensing changed significantly this year — E7 is live, EA to CSP conversions are accelerating, and most renewal conversations are happening earlier than expected. Two questions to find out if that has hit your radar. Fair?',direct:'Kaleb — Softchoice. If your Microsoft EA renews in the next 12 months and nobody has reviewed it yet, you are likely walking into a conversation you are not ready for. Two questions to find out where you stand. Fair?'},
+    {id:'cop',ti:'Copilot / AI readiness',su:'Actively evaluating or piloting.',disarm:'Kaleb at Softchoice — quick one. Most orgs buying Copilot licenses are hitting a wall they did not see coming — data classification is not ready, governance is not in place, and it becomes a security conversation fast. Two questions to find out where you are on that curve. Fair?',direct:'Kaleb — Softchoice. Copilot without data governance is a liability, not a feature. Most teams piloting it right now are about to find that out the hard way. Two questions to see if that is the conversation you are already having. Fair?'},
+    {id:'con',ti:'Overlap / consolidation',su:'Paying best-of-breed + M365.',disarm:'Kaleb at Softchoice — quick one. Most companies your size are paying for CrowdStrike, Okta, and Mimecast on top of an M365 license that already covers most of that. I am not saying one is better — I am calling to find out if you have done the math. Two questions. Fair?',direct:'Kaleb — Softchoice. You are probably paying twice for security. M365 E5 covers endpoint, identity, and email security — the same three vendors most orgs pay separately on top of it. Two questions to find out if that is true for you. Fair?'},
+  ],
+  cisco:[
+    {id:'bb',ti:'Cisco as backbone',su:'Default — infrastructure framing.',disarm:'Kaleb at Softchoice — quick one. For most companies your size, Cisco is not a vendor — it is the backbone everything else runs on. I am calling about whether that backbone is being actively managed or just maintained. Two questions to find out. Fair?',direct:'Kaleb — Softchoice. Most Cisco environments I see are being maintained, not managed. There is a difference — and it is usually measured in budget and risk exposure. Two questions to find out if that is your situation. Fair?'},
+    {id:'ea',ti:'EA 3.0 opportunity',su:'Larger org likely on a Cisco EA.',disarm:'Kaleb at Softchoice — quick one. Cisco EA 3.0 is reshaping how larger organizations buy networking and security — and most EA customers are not capturing what is available to them. Two questions to find out where you stand before your next renewal. Fair?',direct:'Kaleb — Softchoice. If you are on a Cisco EA and nobody has reviewed it against EA 3.0 in the last 12 months, you are almost certainly overpaying or under-covered. Two questions to find out which. Fair?'},
+    {id:'sec',ti:'Security convergence',su:'Hypershield/XDR relevant.',disarm:'Kaleb at Softchoice — quick one. Cisco just shifted the security conversation significantly — Hypershield and XDR are changing what the backbone conversation looks like. Two questions to find out if that has come up in your world yet. Fair?',direct:'Kaleb — Softchoice. Most Cisco shops are running networking and security as two separate conversations. Cisco is converging them whether you are ready or not. Two questions to find out if you are ahead of that or behind it. Fair?'},
+    {id:'spl',ti:'Splunk + Cisco',su:'Natural Cisco convergence story.',disarm:'Kaleb at Softchoice — quick one. The Cisco and Splunk story is changing fast — and most organizations running both are not sure what that means for their licensing, integrations, or roadmap. Two questions to see if that is a conversation worth having. Fair?',direct:'Kaleb — Softchoice. If you are running Splunk in a Cisco environment and nobody has reviewed what the acquisition means for your stack, you are sitting on unoptimized spend and integration gaps. Two questions to find out. Fair?'},
+    {id:'web',ti:'Webex / collaboration',su:'Teams vs Webex live conversation.',disarm:'Kaleb at Softchoice — quick one. The Teams versus Webex conversation is one most IT teams are navigating right now without a clear answer. Two questions to find out how you are thinking about it and whether the math has been done. Fair?',direct:'Kaleb — Softchoice. Most organizations running Webex in a Microsoft environment are paying for overlap they have not quantified. Two questions to find out if that is where you are and whether it matters. Fair?'},
+    {id:'ref',ti:'Asset refresh + LDOS',su:'End-of-support gear in production.',disarm:'Kaleb at Softchoice — quick one. Cisco end-of-support dates are creating real exposure for a lot of organizations — gear sitting in production that is no longer covered, no longer patched. Two questions to find out if that is on your radar or quietly building. Fair?',direct:'Kaleb — Softchoice. End-of-support Cisco gear in production is not an IT problem — it is a risk and compliance problem. Most teams know it is there and have not pulled the trigger on refresh. Two questions to find out if that is where you are. Fair?'},
+  ],
+  modernization:[
+    {id:'dc',ti:'Datacenter refresh',su:'Aging hardware or Broadcom pain.',disarm:'Kaleb at Softchoice — quick one. The Broadcom acquisition of VMware is forcing datacenter conversations that were not on the roadmap yet. Two questions to find out if that has landed on your plate or if you are still in wait-and-see mode. Fair?',direct:'Kaleb — Softchoice. Broadcom changed the VMware math for most organizations and most have not figured out what that means for their refresh cycle. Two questions to find out where you stand before the decision gets made for you. Fair?'},
+    {id:'cl',ti:'Cloud migration',su:'Planning or in-progress move.',disarm:'Kaleb at Softchoice — quick one. Cloud migrations that look straightforward on paper are running into cost and complexity surprises at a rate most organizations did not budget for. Two questions to find out where you are on that journey. Fair?',direct:'Kaleb — Softchoice. Most cloud migration plans are behind schedule and over budget by the time they hit production. Two questions to find out if your migration is tracking or quietly drifting. Fair?'},
+    {id:'hy',ti:'Hybrid strategy',su:'Split on-prem and cloud, no plan.',disarm:'Kaleb at Softchoice — quick one. Most organizations running hybrid environments got there by accident, not by design. Two questions to find out if there is a deliberate strategy behind yours or if it is more of a managed situation. Fair?',direct:'Kaleb — Softchoice. Hybrid without a strategy is just technical debt spread across two environments. Most IT teams know that and have not had time to fix it. Two questions to find out if that is where you are. Fair?'},
+    {id:'ai',ti:'AI infrastructure',su:'GPU and AI workloads on roadmap.',disarm:'Kaleb at Softchoice — quick one. AI infrastructure is the conversation most IT teams are having with the business right now — GPU readiness, cloud versus on-prem, cost modeling. Two questions to find out how far along that conversation is for you. Fair?',direct:'Kaleb — Softchoice. The gap between what the business wants from AI and what the infrastructure can actually support is wider than most organizations realize. Two questions to find out if that gap is on your roadmap or already causing friction. Fair?'},
+    {id:'ap',ti:'App modernization',su:'Legacy apps dragging the business.',disarm:'Kaleb at Softchoice — quick one. Legacy applications are the silent cost most organizations have stopped questioning because they have always been there. Two questions to find out if modernization is the conversation you are having or the one nobody wants to start. Fair?',direct:'Kaleb — Softchoice. Legacy apps show up everywhere — in IT costs, in developer time, in business agility — just not as a clean line item anyone owns. Two questions to find out if that is a conversation that is on the table. Fair?'},
+    {id:'co',ti:'Vendor consolidation',su:'Too many infrastructure tools.',disarm:'Kaleb at Softchoice — quick one. Most infrastructure environments are running more vendors than anyone intended — each one made sense at the time, and now nobody has a clean map of what everything costs. Two questions to see if that sounds familiar. Fair?',direct:'Kaleb — Softchoice. Infrastructure sprawl is expensive and nobody budgets for the management overhead. Most organizations know they have too many vendors and have not made the time to consolidate. Two questions to find out if that is the situation. Fair?'},
+  ],
+  cybersecurity:[
+    {id:'ins',ti:'Cyber insurance pressure',su:'Carrier requirements tightened.',disarm:'Kaleb at Softchoice — quick one. Cyber insurance carriers tightened their control requirements again this year and a lot of IT teams are being asked to prove things they have not had to prove before. Two questions to find out if that conversation has landed on your desk yet. Fair?',direct:'Kaleb — Softchoice. Most cyber insurance renewals this year came with new control requirements that IT did not budget for. Two questions to find out if you are ahead of that conversation or already behind it. Fair?'},
+    {id:'br',ti:'Recent breach or near miss',su:'Industry incident in the news.',disarm:'Kaleb at Softchoice — quick one. There have been high-profile incidents in your industry recently that are changing the board-level conversation around security posture. Two questions to find out if that is creating new pressure internally or if it is still watch-and-see. Fair?',direct:'Kaleb — Softchoice. Every major breach in your industry is a preview of what the attacker playbook looks like right now. Two questions to find out if your current posture would have stopped the last one. Fair?'},
+    {id:'zt',ti:'Zero Trust journey',su:'Active security program.',disarm:'Kaleb at Softchoice — quick one. Zero Trust means something different in every organization and most are further behind on the journey than the roadmap says. Two questions to find out where you actually are versus where the documentation says you are. Fair?',direct:'Kaleb — Softchoice. Most Zero Trust programs stall at identity because the next phase requires budget and change management nobody planned for. Two questions to find out if that is the wall you are at. Fair?'},
+    {id:'mdr',ti:'MDR / SOC coverage',su:'Internal detection understaffed.',disarm:'Kaleb at Softchoice — quick one. Most internal security teams are doing detection and response with headcount that was built for a smaller threat surface. Two questions to find out if the coverage gap is something you are aware of or something that has not surfaced yet. Fair?',direct:'Kaleb — Softchoice. The math on internal SOC versus MDR has shifted significantly — most organizations running internal detection are doing it at a cost and coverage level that would surprise the board. Two questions to find out if that conversation has happened. Fair?'},
+    {id:'pos',ti:'Posture assessment',su:'No formal review in 12+ months.',disarm:'Kaleb at Softchoice — quick one. Most security posture assessments I see are either out of date or were never done in a way that mapped to what the business actually cares about. Two questions to find out when the last honest look happened. Fair?',direct:'Kaleb — Softchoice. A security posture that has not been formally assessed in the last 12 months is not a posture — it is a hope. Two questions to find out if the last review was real or a checkbox. Fair?'},
+    {id:'brd',ti:'Board-level conversation',su:'CISO or CIO in the room.',disarm:'Kaleb at Softchoice — quick one. The security conversation has moved from IT to the boardroom and most CISOs I talk to are being asked questions they do not have clean answers to yet. Two questions to find out if that pressure is something you are navigating. Fair?',direct:'Kaleb — Softchoice. When the board starts asking about security and the CISO does not have a clean narrative, that is a career-defining moment happening in more organizations right now than anyone is talking about. Two questions to find out if you are ahead of that. Fair?'},
+  ],
+  ai:[
+    {id:'cop',ti:'Copilot readiness',su:'Default — data classification gates it.',disarm:'Kaleb at Softchoice — quick one. Most organizations buying Copilot licenses are discovering that data classification is the real conversation — and most are not ready for it. Two questions to find out where you are before it becomes a problem. Fair?',direct:'Kaleb — Softchoice. Copilot without data governance surfaces your most sensitive data to people who should not have it. Most organizations learning that lesson are learning it after deployment. Two questions to find out if you are ahead of it. Fair?'},
+    {id:'cls',ti:'Data classification',su:'Purview and governance is the gap.',disarm:'Kaleb at Softchoice — quick one. Data classification is the conversation nobody wants to have until AI makes it unavoidable. Two questions to find out how far along your organization is — defined program or work in progress. Fair?',direct:'Kaleb — Softchoice. Unclassified data is unprotected data — and most organizations do not know how much of it they have until something forces the audit. Two questions to find out if that conversation has happened. Fair?'},
+    {id:'e7',ti:'E7 / suite upgrade',su:'On E3/E5, AI features are the unlock.',disarm:'Kaleb at Softchoice — quick one. Microsoft E7 is live and it changes the math for organizations on E3 or E5 — AI features, security consolidation, licensing optimization all in one conversation. Two questions to find out if anyone has walked you through what it means. Fair?',direct:'Kaleb — Softchoice. If you are on E3 and buying AI and security tools separately, E7 likely costs you less for more coverage. Most organizations on E3 right now have not done that math. Two questions to find out if that is true for you. Fair?'},
+    {id:'roi',ti:'Copilot adoption ROI',su:'Have licenses but not seeing value.',disarm:'Kaleb at Softchoice — quick one. A lot of organizations deployed Copilot and are now quietly asking whether it is actually changing anything. Two questions to find out if adoption is tracking the way the business expected or if the ROI conversation is getting uncomfortable. Fair?',direct:'Kaleb — Softchoice. Copilot licenses without adoption measurement are an expensive experiment. Most organizations six months into deployment cannot answer what the return actually is. Two questions to find out if that conversation is happening. Fair?'},
+    {id:'sec',ti:'AI + security convergence',su:'Defender and Copilot both in play.',disarm:'Kaleb at Softchoice — quick one. The AI and security conversation is converging faster than most organizations planned — Copilot, Defender, Purview are all touching each other and most environments are not designed for that. Two questions to find out if that is creating friction for you. Fair?',direct:'Kaleb — Softchoice. AI and security are no longer separate roadmaps in a Microsoft environment — they are the same conversation. Most organizations have not reconciled that yet. Two questions to find out if you are ahead of it. Fair?'},
+    {id:'wf',ti:'Workflow automation',su:'Power Platform and automation relevant.',disarm:'Kaleb at Softchoice — quick one. Power Platform and Copilot Studio are changing what is possible for workflow automation — but most organizations using M365 are not capturing that value because nobody owns the roadmap. Two questions to find out if that conversation has started. Fair?',direct:'Kaleb — Softchoice. Most organizations paying for M365 are sitting on automation capabilities they have not touched — Power Platform, Copilot Studio, process automation. Two questions to find out if that value is being captured or left on the table. Fair?'},
+  ],
+  vendor:[
+    {id:'cs',ti:'CrowdStrike + M365 overlap',su:'Default — paying twice for endpoint.',disarm:'Kaleb at Softchoice — quick one. Most organizations running CrowdStrike on top of M365 are paying for endpoint protection twice — Defender covers most of what CrowdStrike does at the E5 level. I am not saying one is better. Two questions to find out if the math has been done. Fair?',direct:'Kaleb — Softchoice. If you are paying for CrowdStrike and M365 E5, you are paying twice for endpoint protection and probably do not know it. Two questions to find out if that is true for your environment. Fair?'},
+    {id:'ok',ti:'Okta + Entra overlap',su:'Paying for Okta on top of M365.',disarm:'Kaleb at Softchoice — quick one. Entra ID covers a significant portion of what Okta does for organizations already on M365 — and most paying for both have never done a side-by-side comparison. Two questions to find out if that has been made. Fair?',direct:'Kaleb — Softchoice. Okta and Entra ID are doing a lot of the same things in most M365 environments. Two questions to find out if you are paying for both and whether that is intentional or inherited. Fair?'},
+    {id:'mm',ti:'Mimecast / email security',su:'Defender P1/P2 covers it.',disarm:'Kaleb at Softchoice — quick one. Defender for Office 365 P1 and P2 cover most of what Mimecast does — and most organizations paying for both have not formally compared them. Two questions to find out if that is a conversation worth having. Fair?',direct:'Kaleb — Softchoice. If you are running Mimecast on top of M365 Defender, you are almost certainly paying for overlap. Two questions to find out how much and whether it is buying you anything additional. Fair?'},
+    {id:'ss',ti:'SaaS sprawl',su:'50+ tools, no governance.',disarm:'Kaleb at Softchoice — quick one. Most organizations have more SaaS tools than anyone has a clean inventory of — and the cost and risk of that sprawl usually surprises the people who find out. Two questions to find out if that visibility exists. Fair?',direct:'Kaleb — Softchoice. SaaS sprawl is the fastest-growing line item nobody is managing. Most organizations are paying for tools that duplicate each other and tools IT does not know exist. Two questions to find out if that is your situation. Fair?'},
+    {id:'rn',ti:'Upcoming renewals',su:'Multiple contracts coming up.',disarm:'Kaleb at Softchoice — quick one. The best time to look at vendor consolidation is before renewals hit — not during them. Two questions to find out what major agreements are coming up and whether any are worth reviewing before the clock runs out. Fair?',direct:'Kaleb — Softchoice. Most vendor consolidation conversations happen after the renewal when the leverage is gone. Two questions to find out what is coming up and whether there is still time to change the outcome. Fair?'},
+    {id:'fo',ti:'FinOps / spend visibility',su:'Cloud and SaaS spend growing.',disarm:'Kaleb at Softchoice — quick one. Cloud and SaaS spend is growing faster than most IT budgets planned for — and most organizations do not have clean visibility into what they are actually spending. Two questions to find out if that visibility exists or if it is a work in progress. Fair?',direct:'Kaleb — Softchoice. Most organizations cannot tell you their total software spend within 20 percent accuracy. Two questions to find out if that is the situation and whether it is creating budget problems. Fair?'},
+  ],
+};
+
+var GR=[
+  {ic:'tick',ti:'"Yeah, sure -- what do you got?"',tip:'They are engaged. Into discovery.'},
+  {ic:'ques',ti:'"What is this about?"',tip:'Reframe in one line, then back to discovery.'},
+  {ic:'clck',ti:'"I only have a minute."',tip:'Compress to one sharp question.'},
+  {ic:'mail',ti:'"Just send me an email."',tip:'Curious follow-up turns it into a qualifier.'},
+  {ic:'user',ti:'"Not the right person."',tip:'Referral move -- get a name.'},
+  {ic:'xmrk',ti:'"Not interested. / Hard no."',tip:'Graceful exit, log it, move on.'},
+  {ic:'hand',ti:'"We already have an MSP / partner."',tip:'Do not back off -- we play with MSPs, not against them.'}
+];
+
+// STATE
+var curSt=null,trail=[],callOn=false,timer=null,secs=0,beat=0,view='list';
+var density='focused',curGTM=null,curAngle=null,gtmSty='disarm';
+var aiHist=[],jentries=[];
+try{jentries=JSON.parse(localStorage.getItem('wm2'))||[];}catch(e){}
+var libCat='All';
+
+// MAP
+function renderWires(){
+  var g=document.getElementById('wg');if(!g)return;g.innerHTML='';
+  var drawn={};
+  for(var i=0;i<WR.length;i++){
+    var w=WR[i],a=w[0],b=w[1],cat=w[2],pri=w[3];
+    if(density==='focused'&&!pri)continue;
+    var k=a<b?a+'-'+b:b+'-'+a;
+    if(drawn[k])continue;drawn[k]=true;
+    var pa=MP[a],pb=MP[b];if(!pa||!pb)continue;
+    var el=document.createElementNS('http://www.w3.org/2000/svg','path');
+    el.setAttribute('d','M'+pa.x+','+pa.y+' L'+pb.x+','+pa.y+' L'+pb.x+','+pb.y);
+    el.setAttribute('stroke',CC[cat]||'#ccc');
+    el.setAttribute('stroke-width',pri?'2':'1.5');
+    el.setAttribute('fill','none');
+    el.setAttribute('stroke-opacity',pri?'0.65':'0.3');
+    if(!pri)el.setAttribute('stroke-dasharray','5,4');
+    el.setAttribute('stroke-linecap','round');
+    g.appendChild(el);
+  }
+}
+function renderNodes(){
+  var g=document.getElementById('ng');if(!g)return;g.innerHTML='';
+  Object.keys(MP).forEach(function(id){
+    var pos=MP[id],s=ST[id];if(!s)return;
+    var color=CC[s.category]||'#888';
+    var r=(id==='microsoft'||id==='cisco')?20:14;
+    var grp=document.createElementNS('http://www.w3.org/2000/svg','g');
+    grp.setAttribute('class','snode');
+    grp.setAttribute('transform','translate('+pos.x+','+pos.y+')');
+    var c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx','0');c.setAttribute('cy','0');c.setAttribute('r',String(r));
+    c.setAttribute('fill',color);c.setAttribute('stroke','white');c.setAttribute('stroke-width','2.5');
+    c.setAttribute('class','scirc');c.setAttribute('id','c-'+id);
+    var tx=document.createElementNS('http://www.w3.org/2000/svg','text');
+    var lx=0,ly=r+13,anc='middle';
+    if(pos.x<100){lx=-(r+4);ly=0;anc='end';}
+    else if(pos.x>520){lx=r+4;ly=0;anc='start';}
+    tx.setAttribute('x',String(lx));tx.setAttribute('y',String(ly));
+    tx.setAttribute('dy',anc!=='middle'?'0.35em':'0');
+    tx.setAttribute('text-anchor',anc);
+    tx.setAttribute('font-size','10.5');tx.setAttribute('font-weight','600');
+    tx.setAttribute('fill','#3a3f52');tx.setAttribute('stroke','white');
+    tx.setAttribute('stroke-width','3');tx.setAttribute('paint-order','stroke');
+    tx.setAttribute('font-family','-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif');
+    tx.textContent=s.label;
+    grp.appendChild(c);grp.appendChild(tx);
+    grp.addEventListener('click',(function(sid){return function(){openSt(sid);};})(id));
+    grp.addEventListener('mouseenter',(function(sid){return function(){hoverSt(sid,true);};})(id));
+    grp.addEventListener('mouseleave',(function(sid){return function(){hoverSt(sid,false);};})(id));
+    g.appendChild(grp);
+  });
+}
+function renderMap(){renderWires();renderNodes();}
+function hoverSt(id,on){
+  var c=document.getElementById('c-'+id);if(!c)return;
+  c.setAttribute('stroke-width',on?'5':'2.5');
+  if(!on)renderWires();
+}
+function setDensity(m){
+  density=m;
+  document.getElementById('dfocused').classList.toggle('active',m==='focused');
+  document.getElementById('dfull').classList.toggle('active',m==='full');
+  document.getElementById('density-hint').textContent=m==='focused'?'Primary connections only':'Every cross-reference -- how real conversations jump around.';
+  renderWires();
+}
+function openSt(id){
+  curSt=id;var s=ST[id];if(!s)return;
+  var el=document.getElementById('sp');if(!el)return;
+  var col=CC[s.category]||'#888';
+  var qs=s.questions.map(function(q,i){return '<div class="dq"><div class="dqn">'+(i+1)+'</div><div class="dqt">'+q+'</div></div>';}).join('');
+  var vs=s.vendors.map(function(v){return '<span class="vc vc'+v.t.toLowerCase().charAt(0)+'">'+v.t+' '+v.n+(v.s?' · '+v.s:'')+'</span>';}).join('');
+  var pv=(s.pivots||[]).map(function(pid){var ps=ST[pid];if(!ps)return '';return '<div class="pvi" onclick="openSt(\''+pid+'\')"><div style="display:flex;align-items:center;gap:8px"><div class="pvdot" style="background:'+(CC[ps.category]||'#888')+'"></div>'+ps.label+'</div><span class="pvb">PRIMARY &rarr;</span></div>';}).join('');
+  el.innerHTML='<div class="sp-hdr"><div class="sp-cat" style="background:'+col+'18;color:'+col+'">'+s.category+'</div><div class="sp-title">'+s.label+'</div><div class="sp-desc">'+s.desc+'</div></div><div class="sp-live" onclick="openInLive(\''+id+'\')"><div><div class="sp-live-t">Open in Live Discovery Call</div><div class="sp-live-s">Drop into a call-optimized view of this station</div></div><span style="color:#6c47ff">&rarr;</span></div><div class="sp-sec"><div class="sp-lbl">&#128269; DISCOVERY QUESTIONS</div>'+qs+'</div><div class="sp-sec"><div class="sp-lbl">&#127962; VENDORS TO POSITION</div><div class="vchips">'+vs+'</div><div style="font-size:11px;color:#8b92a8;margin-top:6px">Sorted strongest first -- Softchoice Active Partners.</div></div><div class="sp-sec"><div class="sp-lbl">&rarr; PIVOT TO</div>'+pv+'</div>';
+}
+function openInLive(id){curSt=id;if(!callOn)startTimer();navTo(id);showPage('live');showDisco();}
+
+// CALL
+function startTimer(){
+  callOn=true;secs=0;clearInterval(timer);
+  var p=document.getElementById('tpill');if(p)p.style.display='flex';
+  timer=setInterval(function(){
+    secs++;
+    var m=String(Math.floor(secs/60)).padStart(2,'0'),s2=String(secs%60).padStart(2,'0');
+    var d=document.getElementById('tdisp');if(d)d.textContent=m+':'+s2;
+  },1000);
+}
+function startLiveCall(mode){
+  clearInterval(timer);callOn=false;trail=[];secs=0;aiHist=[];
+  var d=document.getElementById('tdisp');if(d)d.textContent='00:00';
+  var p=document.getElementById('tpill');if(p)p.style.display='none';
+  var cn=document.getElementById('cnotes');if(cn)cn.value='';
+  var ah=document.getElementById('aiht');if(ah)ah.innerHTML='';
+  var ar=document.getElementById('airesp');if(ar)ar.innerHTML='<span class="aiph">Start your call, then tell me what is happening.</span>';
+  showPage('live');
+  if(mode==='gtm'){showGTMPicker();}
+  else{startTimer();navTo('microsoft');showDisco();}
+}
+function showDisco(){
+  document.getElementById('gtm-pg').classList.remove('on');
+  document.getElementById('gtm-call').classList.remove('on');
+  document.getElementById('disco').style.display='block';
+}
+function showGTMPicker(){
+  document.getElementById('gtm-pg').classList.add('on');
+  document.getElementById('gtm-call').classList.remove('on');
+  document.getElementById('disco').style.display='none';
+  renderGTMGrid();
+}
+function backToGTM(){
+  document.getElementById('gtm-call').classList.remove('on');
+  document.getElementById('gtm-pg').classList.add('on');
+}
+function navTo(id){
+  var s=ST[id];if(!s)return;
+  curSt=id;beat=0;
+  if(trail.indexOf(id)<0)trail.push(id);
+  document.getElementById('cs-cat').textContent=s.category.toUpperCase();
+  document.getElementById('cs-tit').textContent=s.label;
+  document.getElementById('cs-dsc').textContent=s.desc;
+  renderTrail();renderList(s);renderGuided(s);renderSB(s);
+}
+function renderTrail(){
+  var d=document.getElementById('trd');if(!d)return;
+  d.innerHTML=trail.map(function(id,i){var s=ST[id];return(i>0?'<span class="trar">&rsaquo;</span>':'')+'<span class="trch'+(i<trail.length-1?' prev':'')+'" onclick="navTo(\''+id+'\')">'+(s?s.label:id)+'</span>';}).join('');
+}
+function renderList(s){
+  var el=document.getElementById('lqs');if(!el)return;
+  el.innerHTML='<div class="lqh">&#128269; DISCOVERY QUESTIONS</div>'+s.questions.map(function(q,i){return '<div class="lqi"><div class="lqn">'+(i+1)+'</div><div class="lqt">'+q+'</div></div>';}).join('');
+}
+function renderGuided(s){
+  var op=document.getElementById('gopener');
+  if(op)op.innerHTML='<div class="olbl">&#127919; OPENER</div><div class="otxt">"Before we dive in, I would love to get a feel for how '+s.label+' shows up in your world today -- mind if I ask a few questions?"</div>';
+  renderBeat(s,beat);
+}
+function renderBeat(s,idx){
+  var el=document.getElementById('gbeat');if(!el)return;
+  var bs=s.beats||[];
+  if(!bs.length){el.innerHTML='<div style="padding:20px;color:#8b92a8;font-size:13px">No guided beats yet -- use List view.</div>';return;}
+  var b=bs[Math.min(idx,bs.length-1)];
+  var chips=b.chips.map(function(c,ci){return '<button class="rchip" onclick="selChip('+ci+')"><div class="chtit">'+c.ti+'</div><div class="chsub">'+c.su+'</div>'+(c.sg?'<div class="chsig">+ SIGNAL: '+c.sg+'</div>':'')+'</button>';}).join('');
+  el.innerHTML='<div class="bhdr"><div class="bhnt">&#128161; '+b.hint+'</div><div class="bctr">Beat '+(idx+1)+' of '+bs.length+'</div></div><div class="bask"><div class="balbl">&#127919; ASK</div><div class="batxt">"'+b.ask+'"</div></div><div class="thsd"><div class="thlbl">&#128172; THEY SAID... tap the closest match</div><div class="rchips">'+chips+'</div></div><div class="bnav"><div style="display:flex;gap:6px"><button class="bbtn" onclick="prevBeat()">&larr; Back</button><button class="bbtn" onclick="nextBeat()">Skip &rarr;</button></div><button class="bbtn" onclick="nextBeat()">Next beat &rarr;</button></div>';
+}
+function selChip(ci){
+  var s=ST[curSt];if(!s)return;
+  var b=(s.beats||[])[beat];if(!b)return;
+  var c=b.chips[ci];
+  if(c&&c.sg){var n=document.getElementById('cnotes');if(n)n.value+=(n.value?'\n':'')+'[Signal] '+c.sg;}
+  document.querySelectorAll('.rchip').forEach(function(x){x.classList.remove('sel');});
+  var chips=document.querySelectorAll('.rchip');if(chips[ci])chips[ci].classList.add('sel');
+  setTimeout(nextBeat,500);
+}
+function nextBeat(){var s=ST[curSt];if(s&&beat<(s.beats||[]).length-1){beat++;renderBeat(s,beat);}}
+function prevBeat(){if(beat>0){beat--;renderBeat(ST[curSt],beat);}}
+function renderSB(s){
+  var pv=document.getElementById('pvlist');
+  if(pv)pv.innerHTML=(s.pivots||[]).map(function(pid){var ps=ST[pid];if(!ps)return '';return '<button class="pvbtn" onclick="navTo(\''+pid+'\')"><div class="pvbl"><div class="pvdot" style="background:'+(CC[ps.category]||'#888')+'"></div>'+ps.label+'</div><span class="pvtp">PRIMARY</span></button>';}).join('');
+  var sv=document.getElementById('sbvend');
+  if(sv)sv.innerHTML=s.vendors.map(function(v){return '<span class="vc vc'+v.t.toLowerCase().charAt(0)+'">'+v.t+' '+v.n+(v.s?' · '+v.s:'')+'</span>';}).join('');
+  var jc=document.getElementById('jchips');
+  if(jc)jc.innerHTML=Object.keys(ST).map(function(id){return '<button class="jch'+(id===curSt?' cur':'')+'" onclick="navTo(\''+id+'\')">'+ST[id].label+'</button>';}).join('');
+}
+function setView(v){
+  view=v;
+  document.getElementById('lview').style.display=v==='list'?'block':'none';
+  document.getElementById('gview').style.display=v==='guided'?'block':'none';
+  document.getElementById('vlist').classList.toggle('active',v==='list');
+  document.getElementById('vguided').classList.toggle('active',v==='guided');
+}
+function resetCall(){
+  var btn=document.getElementById('rstbtn');
+  if(btn&&btn.dataset.c==='1'){
+    trail=[];beat=0;aiHist=[];
+    var cn=document.getElementById('cnotes');if(cn)cn.value='';
+    var ah=document.getElementById('aiht');if(ah)ah.innerHTML='';
+    var ar=document.getElementById('airesp');if(ar)ar.innerHTML='<span class="aiph">Start your call, then tell me what is happening.</span>';
+    secs=0;var td=document.getElementById('tdisp');if(td)td.textContent='00:00';
+    navTo('microsoft');
+    btn.textContent='&#8634; Reset call';btn.style.color='';btn.style.borderColor='';
+    delete btn.dataset.c;
+  }else if(btn){
+    btn.textContent='&#9888; Tap again to reset';btn.dataset.c='1';
+    btn.style.color='#e63946';btn.style.borderColor='#e63946';
+    setTimeout(function(){if(btn.dataset.c==='1'){btn.textContent='&#8634; Reset call';btn.style.color='';btn.style.borderColor='';delete btn.dataset.c;}},3000);
+  }
+}
+
+// GTM
+function renderGTMGrid(){
+  var el=document.getElementById('gtm-grid');if(!el)return;
+  el.innerHTML=GO.map(function(op){
+    return '<div class="gtm-card" onclick="selGTM(\''+op.id+'\')"><div class="gtm-ctop" style="background:'+op.grad+'"><div class="gtm-ctit">'+op.label+'</div><div class="gtm-csub">'+op.sub+'</div></div><div class="gtm-cbot"><div class="gtm-cscr">'+op.disarm.substring(0,120)+'...</div><span class="gtag '+(op.depth==='deep'?'gtag-d':'gtag-l')+'">'+(op.depth==='deep'?'&#127807; Deep branching':'&#9889; Light branching')+'</span></div></div>';
+  }).join('');
+}
+function selGTM(id){
+  curGTM=null;
+  for(var i=0;i<GO.length;i++){if(GO[i].id===id){curGTM=GO[i];break;}}
+  if(!curGTM)return;
+  gtmSty='disarm';
+  var angles=LA[id]||[];
+  curAngle=angles[0]||null;
+  if(!callOn)startTimer();
+  document.getElementById('gtm-pg').classList.remove('on');
+  document.getElementById('gtm-call').classList.add('on');
+  document.getElementById('disco').style.display='none';
+  renderGTMCall();
+  renderGTMResp();
+  renderGTMJump();
+}
+function renderGTMCall(){
+  var op=curGTM;if(!op)return;
+  var el=document.getElementById('gtm-main');if(!el)return;
+  var angles=LA[op.id]||[];
+  var achips=angles.map(function(a){
+    var on=curAngle&&curAngle.id===a.id;
+    return '<button class="lwchip'+(on?' on':'')+'" onclick="selAngle(\''+a.id+'\')"><div class="lwt">'+a.ti+'</div><div class="lws">'+a.su+'</div></button>';
+  }).join('');
+  var scr=gtmSty==='disarm'?op.disarm:op.direct;
+  var sthint=gtmSty==='disarm'?'Safer, more permission-based. Best for newer reps or cautious prospects.':'Confident, peer-energy, no apology.';
+  el.innerHTML=
+    '<div class="gbar"><div style="display:flex;align-items:center;gap:8px;color:#4a5068"><span class="gbar-lbl">&#127919; The goal:</span> book a 30-min discovery call.</div><div style="font-size:12px;color:#8b92a8">Signal: <strong>Building rapport</strong></div></div>'+
+    '<div class="pitch" style="background:'+op.grad+'">'+
+      '<div class="pitch-in">'+
+        '<div class="pitch-badge">&#9632; '+op.label+'</div>'+
+        '<div class="pitch-h">The 15-second pitch</div>'+
+        '<div class="pitch-strow">'+
+          '<span class="pitch-stlbl">PITCH STYLE:</span>'+
+          '<button class="stbtn'+(gtmSty==='disarm'?' on':'')+'" onclick="setGS(\'disarm\')">&#128293; Disarm-First</button>'+
+          '<button class="stbtn'+(gtmSty==='direct'?' on':'')+'" onclick="setGS(\'direct\')">&#9889; Direct</button>'+
+          '<span class="pitch-sthint">'+sthint+'</span>'+
+        '</div>'+
+        '<div class="lwsec">'+
+          '<div class="lwlbl">&#10022; LEAD WITH... <span style="font-weight:400;opacity:.7">pick the angle that fits this prospect</span></div>'+
+          '<div class="lwgrid">'+achips+'</div>'+
+        '</div>'+
+        '<div class="saythis">'+
+          '<div class="saylbl">&#9998; SAY THIS <span style="color:#6c47ff;font-weight:700">('+( gtmSty==='disarm'?'Disarm-First':'Direct')+')</span></div>'+
+          '<div class="saytxt">'+scr+'</div>'+
+          '<div class="mtags"><span class="mt mt-ccs">CCS &middot; pattern interrupt</span><span class="mt mt-ch">Challenger &middot; reframe</span></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="aisec" style="margin-top:14px">'+
+      '<div class="aihdr"><div class="aitit"><span class="aibdg">AI</span> Live coaching</div><span style="font-size:11px;color:#8b92a8">Powered by Claude</span></div>'+
+      '<div class="aiht" id="aiht-gtm"></div>'+
+      '<div class="aiia">'+
+        '<div class="airow"><textarea class="aiinp" id="aiinp-gtm" rows="2" placeholder="What just happened? e.g. They said they already have a partner"></textarea>'+
+        '<button class="aisnd" onclick="askGTM()">Coach me &rarr;</button></div>'+
+        '<div class="aiqks">'+
+          '<button class="aiqk" onclick="qGTM(\'They said they already have a partner\')">Have a partner</button>'+
+          '<button class="aiqk" onclick="qGTM(\'They said just send me an email\')">Send info</button>'+
+          '<button class="aiqk" onclick="qGTM(\'They only have one minute\')">Only a minute</button>'+
+          '<button class="aiqk" onclick="qGTM(\'They seem interested and asking follow-up questions\')">Showing interest</button>'+
+          '<button class="aiqk" onclick="qGTM(\'They said they already have an MSP or partner managing that\')">Have an MSP</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="airesp" id="airesp-gtm"><span class="aiph">Tell me what they said -- I will coach you through it.</span></div>'+
+    '</div>'+
+    '<div class="nsec" style="margin-top:14px">'+
+      '<div class="nhdr"><div class="ntit">&#128203; CALL NOTES</div><div class="nauto">Saved to Journal when you end the call</div></div>'+
+      '<textarea class="nta" id="cnotes-gtm" placeholder="Jot what you hear -- names, agreements, pains, dollar amounts."></textarea>'+
+    '</div>';
+}
+function renderGTMResp(){
+  var el=document.getElementById('gtm-resp');if(!el)return;
+  el.innerHTML=GR.map(function(r,i){
+    return '<button class="rpbtn" onclick="handleResp('+i+')">'+
+      '<span class="rpi">'+getIcon(r.ic)+'</span>'+
+      '<div><div class="rptt">'+r.ti+'</div><div class="rptip">'+r.tip+'</div></div></button>';
+  }).join('');
+}
+function getIcon(ic){
+  var m={'tick':'&#10003;','ques':'&#63;','clck':'&#9201;','mail':'&#9993;','user':'&#128100;','xmrk':'&#10007;','hand':'&#129309;'};
+  return m[ic]||'&bull;';
+}
+function renderGTMJump(){
+  var pv=document.getElementById('gtm-pivots');
+  if(pv&&curGTM){
+    var s=ST[curGTM.station];
+    pv.innerHTML=(s?s.pivots||[]:[]).slice(0,5).map(function(pid){var ps=ST[pid];if(!ps)return '';return '<button class="pvbtn" onclick="jumpDisco(\''+pid+'\')"><div class="pvbl"><div class="pvdot" style="background:'+(CC[ps.category]||'#888')+'"></div>'+ps.label+'</div><span class="pvtp">DISCO &rarr;</span></button>';}).join('');
+  }
+  var jc=document.getElementById('gtm-jump');
+  if(jc)jc.innerHTML=Object.keys(ST).map(function(id){return '<button class="jch" onclick="jumpDisco(\''+id+'\')">'+ST[id].label+'</button>';}).join('');
+}
+function handleResp(idx){
+  var r=GR[idx];
+  // Step 1: confirm click fired
+  var re=document.getElementById('airesp-gtm');
+  if(!r)return;
+  if(!re)return;
+  // Step 2: show immediate feedback
+  re.innerHTML='<div class="aithnk"><span>Coaching</span><div class="dots"><span></span><span></span><span></span></div></div>';
+  var btns=document.querySelectorAll('#gtm-resp .rpbtn');
+  btns.forEach(function(b){b.style.opacity='0.5';b.style.borderColor='';});
+  if(btns[idx]){btns[idx].style.opacity='1';btns[idx].style.borderColor='#6c47ff';}
+  // Step 3: build prompt with full context
+  var opener = curGTM ? curGTM.label : 'unknown';
+  var angle = curAngle ? curAngle.ti : 'not selected';
+  var style = gtmSty === 'disarm' ? 'Disarm-First' : 'Direct';
+  var script = curGTM ? (gtmSty === 'disarm' ? curGTM.disarm : curGTM.direct) : '';
+  var prompt = 'OPENER USED: ' + opener + '\n' +
+    'LEAD ANGLE: ' + angle + '\n' +
+    'PITCH STYLE: ' + style + '\n' +
+    'SCRIPT DELIVERED: ' + script + '\n\n' +
+    'PROSPECT RESPONSE: ' + r.ti + '\n' +
+    'WHAT THIS MEANS: ' + r.tip + '\n\n' +
+    'What should the rep say RIGHT NOW? Give exact words in quotes. 2-3 sentences max.';
+  // Step 4: fire
+  streamAI(getGTMSys(),prompt,'airesp-gtm','aiht-gtm').then(function(){
+    btns.forEach(function(b){b.style.opacity='';b.style.borderColor='';});
+  }).catch(function(err){
+    if(re)re.innerHTML='<span style="color:red">ERROR: '+err.message+'</span>';
+    btns.forEach(function(b){b.style.opacity='';b.style.borderColor='';});
+  });
+}
+function selAngle(id){
+  var angles=LA[curGTM?curGTM.id:'']||[];
+  for(var i=0;i<angles.length;i++){if(angles[i].id===id){curAngle=angles[i];break;}}
+  renderGTMCall();
+}
+function setGS(s){gtmSty=s;renderGTMCall();}
+function jumpDisco(id){
+  if(!callOn)startTimer();
+  navTo(id);
+  document.getElementById('gtm-call').classList.remove('on');
+  document.getElementById('gtm-pg').classList.remove('on');
+  document.getElementById('disco').style.display='block';
+}
+
+// AI
+function getSys(){
+  var s=ST[curSt];
+  var qs=s?(s.questions||[]).map(function(q,i){return (i+1)+'. '+q;}).join('\n'):'';
+  var vs=s?(s.vendors||[]).map(function(v){return v.t+': '+v.n+(v.s?' ('+v.s+')':'');}).join(', '):'';
+  var pvs=s?(s.pivots||[]).map(function(pid){return ST[pid]?ST[pid].label:pid;}).join(', '):'';
+  var trailStr=trail.map(function(id){return ST[id]?ST[id].label:id;}).join(' > ');
+  var curBeat=s&&s.beats&&s.beats[beat]?s.beats[beat]:null;
+
+  return [
+    'You are an elite real-time sales coach for Softchoice, an IT solutions provider. You are whispering in the ear of a rep on a LIVE call right now. Be concise, sharp, and immediately actionable.',
+    '',
+    '=== CURRENT STATION: '+(s?s.label.toUpperCase():'UNKNOWN')+' ===',
+    s?s.desc:'',
+    '',
+    '=== DISCOVERY QUESTIONS FOR THIS STATION ===',
+    qs,
+    '',
+    '=== VENDORS SOFTCHOICE POSITIONS HERE ===',
+    vs,
+    '',
+    '=== NATURAL PIVOT STATIONS FROM HERE ===',
+    pvs,
+    '',
+    '=== CALL TRAIL (how we got here) ===',
+    trailStr||'Just started',
+    '',
+    curBeat?('=== CURRENT BEAT THE REP IS ON ===\nAsk: "'+curBeat.ask+'"\nHint: '+curBeat.hint):'',
+    '',
+    '=== SOFTCHOICE SALES METHODOLOGIES IN PLAY ===',
+    'CCS (Cold Calling Sucks): Pattern interrupt, upfront contract, one question at a time, earn the right. Sound human not scripted.',
+    'Challenger: Teach-Tailor-Take Control. Lead with a commercial insight. Reframe their thinking. "Most companies your size..."',
+    'Modern Consultative: Permission-based curiosity. "Help me understand..." / "Walk me through..." Reflective listening. Meet them where they are.',
+    'Carnegie: Make them feel important. Be genuinely interested in THEM, not the sale. Use their name. Honor their time.',
+    '',
+    '=== YOUR COACHING RULES ===',
+    '1. Give the rep 1-3 sentences they can say OUT LOUD right now. Put actual words in quotes.',
+    '2. Pick the right methodology for the moment -- do not blend all four every time.',
+    '3. If they are stuck, give a bridging question that feels natural not scripted.',
+    '4. If an objection surfaces, acknowledge it first before pivoting.',
+    '5. If they mention a signal (budget, pain, urgency, timeline), tell the rep to capture it and what it means.',
+    '6. Never be generic. Reference the specific station, vendor, or question context above.',
+    '7. For follow-up emails: use Minto/SCQA -- answer first, then support. Subject line must be specific and non-generic.',
+    '8. Keep it to 2-4 sentences max. The rep is on a live call.'
+  ].filter(function(l){return l!==null;}).join('\n');
+}
+function getGTMSys(){
+  var op=curGTM;
+  var angle=curAngle;
+  var mainSt=op?ST[op.station]:null;
+  var qs=mainSt?(mainSt.questions||[]).map(function(q,i){return (i+1)+'. '+q;}).join('\n'):'';
+  var vs=mainSt?(mainSt.vendors||[]).map(function(v){return v.t+': '+v.n+(v.s?' ('+v.s+')':'');}).join(', '):'';
+  var pvs=mainSt?(mainSt.pivots||[]).map(function(pid){return ST[pid]?ST[pid].label:pid;}).join(', '):'';
+  var script=op?(gtmSty==='disarm'?op.disarm:op.direct):'';
+  var parts=[
+    'You are an elite real-time sales coach for Softchoice on a LIVE cold call. The rep is dialing right now. Be concise, punchy, human. Never generic.',
+    '',
+    'GTM OPENER: '+(op?op.label.toUpperCase():'UNKNOWN'),
+    op?op.sub:'',
+    '',
+    'PITCH STYLE: '+(gtmSty==='disarm'?'DISARM-FIRST (permission-based, human, safer for cautious prospects)':'DIRECT (confident, peer-energy, no apology)'),
+    '',
+    'LEAD ANGLE: '+(angle?angle.ti:'not selected'),
+    angle?('When to use: '+angle.su):'',
+    '',
+    'SCRIPT THEY JUST DELIVERED:',
+    script,
+    '',
+    'IF THEY ENGAGE -- DISCOVERY QUESTIONS TO BRIDGE TO:',
+    qs,
+    '',
+    'VENDORS SOFTCHOICE POSITIONS FOR THIS OPENER:',
+    vs,
+    '',
+    'NATURAL NEXT STATIONS IF CALL CONVERTS:',
+    pvs,
+    '',
+    'COLD CALL METHODOLOGIES:',
+    'CCS: Pattern interrupt, upfront contract, earn the right one question at a time.',
+    'Challenger: Lead with a commercial insight they did not already know.',
+    'Modern Consultative: Permission-based curiosity. No agenda frame.',
+    'Carnegie: Make them feel important. Genuinely interested in them.',
+    '',
+    'YOUR RULES FOR COLD CALLS:',
+    '1. Give the rep EXACT words to say OUT LOUD right now -- in quotes.',
+    '2. Cold call = short, punchy, human. No corporate language.',
+    '3. If they got an objection, acknowledge it FIRST before any pivot.',
+    '4. If they got a positive signal, give the next question to deepen it.',
+    '5. If hard no, give a graceful exit that leaves the door open.',
+    '6. Reference the specific opener, angle, and style -- never generic.',
+    '7. Max 3 sentences. Rep is on a live call.'
+  ];
+  return parts.filter(function(p){return p!==null&&p!==undefined;}).join('\n');
+}
+
+function addMsg(role,txt,histId,respId){
+  if(role==='user'){
+    var h=document.getElementById(histId);if(!h)return;
+    var el=document.createElement('div');
+    el.className='aimsg aimu';
+    el.textContent='You: '+txt;
+    h.appendChild(el);h.scrollTop=h.scrollHeight;
+  }
+  // AI response stays visible in respId — no need to duplicate in history
+}
+function qAsk(txt){var inp=document.getElementById('aiinp');if(inp)inp.value=txt;askAI();}
+function qGTM(txt){askGTMDirect(txt);}
+function genFU(){
+  var cn=document.getElementById('cnotes');var s=ST[curSt];
+  var txt='Draft a follow-up email using Minto/SCQA structure. Station: '+(s?s.label:'')+'. Trail: '+trail.map(function(id){return ST[id]?ST[id].label:id;}).join(' > ')+'. Notes: '+(cn?cn.value:'none')+'. Make it specific, compelling, human. Include subject line.';
+  var inp=document.getElementById('aiinp');if(inp)inp.value=txt;askAI();
+}
+
+// JOURNAL
+function endCall(){document.getElementById('smodal').classList.add('on');}
+function closeMod(){document.getElementById('smodal').classList.remove('on');}
+function saveCall(){
+  var nm=document.getElementById('sname').value.trim()||'Unnamed account';
+  var cn=document.getElementById('cnotes'),cng=document.getElementById('cnotes-gtm');
+  var entry={id:Date.now(),name:nm,timestamp:new Date().toLocaleString(),
+    duration:document.getElementById('tdisp').textContent,trail:[].concat(trail),
+    notes:(cn?cn.value:'')+(cng&&cng.value?'\n'+cng.value:''),
+    mode:curGTM?'GTM: '+curGTM.label:'Discovery'};
+  jentries.unshift(entry);
+  try{localStorage.setItem('wm2',JSON.stringify(jentries));}catch(e){}
+  closeMod();clearInterval(timer);callOn=false;secs=0;
+  var td=document.getElementById('tdisp');if(td)td.textContent='00:00';
+  var p=document.getElementById('tpill');if(p)p.style.display='none';
+  document.getElementById('sname').value='';trail=[];curGTM=null;
+  renderJournal();showPage('journal');
+}
+function renderJournal(){
+  var el=document.getElementById('jlist');if(!el)return;
+  if(!jentries.length){
+    el.innerHTML='<div class="jempty"><div style="font-size:48px;margin-bottom:16px">&#128203;</div><h3 style="font-size:16px;font-weight:700;margin-bottom:6px">No saved calls yet</h3><p style="color:#4a5068;font-size:13px;max-width:360px;margin:0 auto 20px">Notes you take during a live call land here once you hit End &amp; Save Call.</p><button class="btn-p" onclick="startLiveCall(\'discovery\')">&#128222; Start a call</button></div>';
+    return;
+  }
+  el.innerHTML=jentries.map(function(e){
+    var tr=e.trail.map(function(id){return '<span class="jest">'+(ST[id]?ST[id].label:id)+'</span>';}).join('');
+    return '<div class="jent"><div class="jetop"><div class="jenm">'+e.name+'</div><div class="jetm">'+e.timestamp+' &middot; '+e.duration+'</div></div><div class="jetr">'+tr+'</div><div class="jent-n">'+(e.notes||'No notes recorded')+'</div><div class="jeac"><button class="jebtn" onclick="copyR('+e.id+')">&#128203; Copy recap</button><button class="jebtn danger" id="jd-'+e.id+'" onclick="delEntry('+e.id+')">&#128465; Delete</button></div></div>';
+  }).join('');
+}
+function copyR(id){
+  var e=null;for(var i=0;i<jentries.length;i++){if(jentries[i].id===id){e=jentries[i];break;}}
+  if(!e)return;
+  var t='Call Recap -- '+e.name+'\nDate: '+e.timestamp+' | Duration: '+e.duration+'\nMode: '+(e.mode||'Discovery')+'\nTopics: '+e.trail.map(function(id){return ST[id]?ST[id].label:id;}).join(' > ')+'\n\nNotes:\n'+(e.notes||'None');
+  navigator.clipboard.writeText(t).then(function(){alert('Recap copied!');});
+}
+function delEntry(id){
+  var btn=document.getElementById('jd-'+id);
+  if(btn&&btn.dataset.c==='1'){
+    jentries=jentries.filter(function(e){return e.id!==id;});
+    try{localStorage.setItem('wm2',JSON.stringify(jentries));}catch(err){}
+    renderJournal();
+  }else if(btn){
+    btn.textContent='&#9888; Tap again to confirm';btn.dataset.c='1';
+    setTimeout(function(){if(btn&&btn.dataset.c==='1'){btn.textContent='&#128465; Delete';delete btn.dataset.c;}},3000);
+  }
+}
+
+// LIBRARY
+function renderLibrary(){
+  var cats=['All'].concat(Object.keys(CC));
+  var fe=document.getElementById('lfilts');
+  if(fe)fe.innerHTML=cats.map(function(c){return '<button class="lfbtn'+(c===libCat?' active':'')+'" onclick="setLC(\''+c+'\')">'+c+'</button>';}).join('');
+  filterLib();
+}
+function setLC(c){
+  libCat=c;
+  document.querySelectorAll('.lfbtn').forEach(function(b){b.classList.toggle('active',b.textContent===c);});
+  filterLib();
+}
+function filterLib(){
+  var q=(document.getElementById('lsrch')||{}).value||'';q=q.toLowerCase();
+  var el=document.getElementById('lgrid');if(!el)return;
+  var ss=Object.values(ST).filter(function(s){
+    if(libCat!=='All'&&s.category!==libCat)return false;
+    if(q&&s.label.toLowerCase().indexOf(q)<0&&s.desc.toLowerCase().indexOf(q)<0)return false;
+    return true;
+  });
+  el.innerHTML=ss.map(function(s){
+    var col=CC[s.category]||'#888';
+    return '<div class="lcard" onclick="openInLive(\''+s.id+'\')"><div class="lctop" style="background:'+col+'"></div><span class="lccat" style="color:'+col+'">'+s.category+'</span><div class="lctit">'+s.label+'</div><div class="lcdsc">'+s.desc.substring(0,100)+'...</div><div class="lcmeta"><span>&#128279; '+(s.pivots||[]).length+' connections</span><span>&#127962; '+s.vendors.length+' vendors</span></div></div>';
+  }).join('');
+}
+
+// NAV
+function showPage(n){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.ntab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('page-'+n).classList.add('active');
+  var tab=document.getElementById('tab-'+n);if(tab)tab.classList.add('active');
+  if(n==='journal')renderJournal();
+  if(n==='library')renderLibrary();
+  if(n==='live'&&!curSt){showDisco();startTimer();navTo('microsoft');}
+}
+
+async function streamAI(sys,txt,respId,histId){
+  var re=document.getElementById(respId);
+  console.log('=== SYSTEM PROMPT ===\n'+sys.substring(0,300));
+  console.log('=== USER MESSAGE ===\n'+txt.substring(0,200));
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,stream:true,
+        system:sys,
+        messages:[{role:'user',content:txt}]})
+    });
+    var rdr=res.body.getReader(),dec=new TextDecoder(),full='';
+    if(re)re.textContent='';
+    while(true){
+      var chunk=await rdr.read();if(chunk.done)break;
+      var lines=dec.decode(chunk.value).split('\n');
+      for(var i=0;i<lines.length;i++){
+        if(lines[i].startsWith('data: ')){
+          try{
+            var d=JSON.parse(lines[i].slice(6));
+            if(d.type==='content_block_delta'&&d.delta&&d.delta.text){
+              full+=d.delta.text;if(re)re.textContent=full;
+            }
+          }catch(e2){}
+        }
+      }
+    }
+    addMsg('ai',full,histId,respId);
+  }catch(e){
+    if(re)re.innerHTML='<span style="color:#e63946">Something went wrong. Check connection and try again.</span>';
+  }
+}
+
+async function askAI(){
+  var inp=document.getElementById('aiinp');
+  var txt=inp?inp.value.trim():'';if(!txt)return;
+  if(inp)inp.value='';
+  var sb=document.getElementById('aisnd');if(sb)sb.disabled=true;
+  addMsg('user',txt,'aiht','airesp');
+  var re=document.getElementById('airesp');
+  if(re)re.innerHTML='<div class="aithnk"><span>Coaching</span><div class="dots"><span></span><span></span><span></span></div></div>';
+  await streamAI(getSys(),txt,'airesp','aiht');
+  if(sb)sb.disabled=false;
+}
+
+async function askGTMDirect(txt){
+  if(!txt)return;
+  var re=document.getElementById('airesp-gtm');
+  if(re)re.innerHTML='<div class="aithnk"><span>Coaching</span><div class="dots"><span></span><span></span><span></span></div></div>';
+  await streamAI(getGTMSys(),txt,'airesp-gtm','aiht-gtm');
+}
+
+async function askGTM(){
+  var inp=document.getElementById('aiinp-gtm');
+  var txt=inp?inp.value.trim():'';if(!txt)return;
+  if(inp)inp.value='';
+  await askGTMDirect(txt);
+}
+
+function qAsk(txt){var inp=document.getElementById('aiinp');if(inp)inp.value=txt;askAI();}
+function qGTM(txt){askGTMDirect(txt);}
+
+function genFU(){
+  var cn=document.getElementById('cnotes');var s=ST[curSt];
+  var txt='Draft a follow-up email using Minto/SCQA structure (answer first, then support). Station: '+(s?s.label:'')+'. Trail: '+trail.map(function(id){return ST[id]?ST[id].label:id;}).join(' > ')+'. Call notes: '+(cn?cn.value:'none')+'. Subject line must be specific and non-generic. Make it sound human.';
+  var inp=document.getElementById('aiinp');if(inp)inp.value=txt;askAI();
+}
+
+// INIT
+renderMap();
+renderLibrary();
+
+
+</script>
+</body>
+</html>
