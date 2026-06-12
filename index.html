@@ -1375,7 +1375,7 @@ async function streamAI(sys,txt,respId,histId){
   try{
     var res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01'},
+      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-request-check':'allow'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,stream:true,
         system:sys,
         messages:[{role:'user',content:txt}]})
