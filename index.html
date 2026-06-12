@@ -286,6 +286,8 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
     <button class="ntab active" id="tab-map" onclick="showPage('map')">&#9632; Map</button>
     <button class="ntab" id="tab-live" onclick="showPage('live')">&#128222; Live Call</button>
     <button class="ntab" id="tab-journal" onclick="showPage('journal')">&#128203; Journal</button>
+    <button class="ntab" id="tab-playbook" onclick="showPage('playbook')">&#128218; Playbook</button>
+    <button class="ntab" id="tab-resources" onclick="showPage('resources')">&#128196; Resources</button>
     <button class="ntab" id="tab-library" onclick="showPage('library')">&#8801; Library</button>
   </div>
   <div class="nav-right">
@@ -453,6 +455,16 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
       </div>
     </div>
   </div>
+</div>
+
+<!-- PLAYBOOK PAGE -->
+<div class="page" id="page-playbook">
+  <div id="playbook-content" style="padding:0"></div>
+</div>
+
+<!-- RESOURCES PAGE -->
+<div class="page" id="page-resources">
+  <div id="resources-content" style="padding:0"></div>
 </div>
 
 <!-- JOURNAL PAGE -->
@@ -1365,6 +1377,8 @@ function showPage(n){
   var tab=document.getElementById('tab-'+n);if(tab)tab.classList.add('active');
   if(n==='journal')renderJournal();
   if(n==='library')renderLibrary();
+  if(n==='playbook')renderPlaybook();
+  if(n==='resources')renderResources();
   if(n==='live'&&!curSt){showDisco();startTimer();navTo('microsoft');}
 }
 
@@ -1373,9 +1387,9 @@ async function streamAI(sys,txt,respId,histId){
   console.log('=== SYSTEM PROMPT ===\n'+sys.substring(0,300));
   console.log('=== USER MESSAGE ===\n'+txt.substring(0,200));
   try{
-    var res=await fetch('/api/chat',{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-request-check':'allow'},
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,stream:true,
         system:sys,
         messages:[{role:'user',content:txt}]})
@@ -1435,6 +1449,617 @@ function genFU(){
   var cn=document.getElementById('cnotes');var s=ST[curSt];
   var txt='Draft a follow-up email using Minto/SCQA structure (answer first, then support). Station: '+(s?s.label:'')+'. Trail: '+trail.map(function(id){return ST[id]?ST[id].label:id;}).join(' > ')+'. Call notes: '+(cn?cn.value:'none')+'. Subject line must be specific and non-generic. Make it sound human.';
   var inp=document.getElementById('aiinp');if(inp)inp.value=txt;askAI();
+}
+
+var PLAYBOOK = [
+  {
+    id: 'ccs',
+    type: 'spoken',
+    emoji: '📗',
+    title: 'Cold Calling Sucks (and That\'s Why It Works)',
+    author: 'Farrokh & Cegelski',
+    tagline: 'How to actually open a cold call without sounding like a script.',
+    color: '#16a34a',
+    bg: '#f0fdf4',
+    border: '#bbf7d0',
+    whenToUse: 'Use this every single call. CCS is the spine of the opener — pattern interrupt, upfront contract, earn-the-right one question at a time.',
+    coreMoves: ['Pattern interrupt: name the awkwardness instead of pretending it isn\'t there.','Upfront contract: tell them exactly what you\'ll ask for and what happens if it isn\'t a fit.','One question at a time — never two in a row without earning the next.','Stack specific reasons: the reason for the call is...','Handle objections with curiosity, not pressure.'],
+    pitfall: 'Trying to sound polished. The whole point is to sound human. Honest beats smooth on a cold call — every time.',
+    doThis: [{label:'PATTERN INTERRUPT OPENER',good:'Kaleb at Softchoice — I know I\'m out of nowhere, so I\'ll keep it tight.',bad:'Hi, how are you today? Do you have a minute to talk about your IT environment?'},{label:'UPFRONT CONTRACT',good:'Two questions, and if it\'s not your situation, I disappear. Fair?',bad:'I just have a few quick questions for you.'},{label:'EARNING THE NEXT QUESTION',good:'Mind if I ask one more, and then I\'ll either earn another five minutes or get out of your way?',bad:'Great. And another thing — are you happy with your current vendor?'}]
+  },
+  {
+    id: 'challenger',
+    type: 'spoken',
+    emoji: '🎯',
+    title: 'The Challenger Sale',
+    author: 'Dixon & Adamson',
+    tagline: 'Teach. Tailor. Take control. Reframe their thinking with a commercial insight.',
+    color: '#db2777',
+    bg: '#fdf2f8',
+    border: '#fbcfe8',
+    whenToUse: 'The pitch\'s hook, mid-discovery teaching moments, and the take-control booking close. Challenger is the confidence + insight layer.',
+    coreMoves: ['Teach: bring an insight the customer didn\'t already know — specific, relevant, fresh in the last 12 months.','Tailor: adapt the message to their role, industry, and situation. Not one-size-fits-all.','Take Control: assertive, comfortable challenging the customer\'s thinking, willing to push back constructively.','Commercial Insight (Reframe): a new lens on a problem they thought they understood. It\'s not actually a security problem — it\'s a licensing visibility problem.','Lead with the unexpected: Most companies on M365 think the conversation is about renewal. It\'s actually about overlap.','The Teaching Moment: mid-discovery, share the industry benchmark, then ask them to place themselves on it.'],
+    pitfall: 'Confusing assertive with arrogant. Challenger requires earned authority — the insight has to be real and relevant. If you teach something they already knew, you sound like an amateur.',
+    doThis: [{label:'COMMERCIAL INSIGHT REFRAME',good:'Most CISOs think the conversation is about adding tools. It\'s actually about whether the ones you own are already covering what insurance now expects.',bad:'We have a great security platform that does X, Y, and Z. Want to learn more?'},{label:'TEACH + ASK THEM TO SELF-PLACE',good:'Here\'s what we see: usage of Defender, Purview, Intune, and Entra P2 typically lands around 30 to 40%. Where would you put yours, honestly?',bad:'How\'s your E5 adoption?'},{label:'TAKE CONTROL BOOKING CLOSE',good:'Here\'s what I\'d do if I were you — rather than try to do this on the phone, give me 30 minutes with a specialist. What does next Tuesday at 2 look like?',bad:'Would it be possible to maybe set up a follow-up call if you have time?'}]
+  },
+  {
+    id: 'consultative',
+    type: 'spoken',
+    emoji: '🤝',
+    title: 'Modern Consultative',
+    author: 'Bosworth · Priemer · Iannarino · Blount',
+    tagline: 'Meet them where they are. Curious questions, reflective listening, no agenda.',
+    color: '#d97706',
+    bg: '#fffbeb',
+    border: '#fde68a',
+    whenToUse: 'Throughout discovery. Modern Consultative is the curiosity engine — it\'s how you ask questions that surface real intel without sounding like you\'re interrogating.',
+    coreMoves: ['Permission-based curiosity: Help me understand... / Walk me through... / What\'s your read on...','Reflective listening: So if I\'m hearing you right, the real issue is ___ — in your own words, not theirs verbatim.','Meet them where they are — don\'t push toward a predetermined answer. Adapt to the prospect\'s level of awareness.','Co-discovery: Let\'s figure this out together — not Let me tell you what you need.','No-agenda frame: I\'m not here to sell you anything today — I\'m here to find out if there\'s even a fit.','Open enumeration: ask what\'s actually running rather than do you have X?','Honor the answer. If they\'re happy, say so out loud and move on. Don\'t fight it.'],
+    pitfall: 'Letting curiosity become aimlessness. Open-ended doesn\'t mean unstructured — you still need to be steering toward the booking moment, just gently. If you never reflect what you heard, the prospect doesn\'t feel listened to: they feel interviewed.',
+    doThis: [{label:'PERMISSION-BASED CURIOSITY',good:'Help me understand how Microsoft actually shows up in your environment.',bad:'Are you on E3 or E5?'},{label:'REFLECTIVE LISTENING',good:'So if I\'m hearing you right, the real friction isn\'t the renewal — it\'s not knowing what\'s being duplicated elsewhere.',bad:'It sounds like you\'re frustrated. (too clinical, too on-the-nose)'},{label:'CO-DISCOVERY',good:'Let\'s figure out together where the math actually breaks.',bad:'Let me walk you through where you\'re probably wasting money.'},{label:'NO-AGENDA FRAME',good:'I\'m not here to sell you anything today — just to find out if there\'s even a fit. Cool?',bad:'Pretending the prospect doesn\'t know you\'re a salesperson.'}]
+  },
+  {
+    id: 'carnegie',
+    type: 'spoken',
+    emoji: '❤️',
+    title: 'How to Win Friends & Influence People',
+    author: 'Dale Carnegie',
+    tagline: 'Make them feel important. Be genuinely interested — not in selling them, in them.',
+    color: '#b45309',
+    bg: '#fff7ed',
+    border: '#fed7aa',
+    whenToUse: 'Throughout the call — especially the close. Carnegie is the warmth layer. Without it the call feels surgical and transactional.',
+    coreMoves: ['Become genuinely interested in the other person — not in selling.','Talk in terms of their interests, their wins, their problems — not your product.','Make them feel important. Ask who\'s the hero in their org for the win you\'re proposing.','Smile (audibly — yes, it comes through the phone).','Use their name. Once or twice. Not creepily.','Never argue. You can\'t win an argument with a prospect.','Admit your own mistakes quickly: I should have asked you that earlier.'],
+    pitfall: 'Mistaking warmth for weakness. Carnegie isn\'t deferential — it\'s confident curiosity. You\'re not begging: you\'re interested.',
+    doThis: [{label:'MAKE THEM FEEL IMPORTANT',good:'If your account team brought you a 6-figure savings play — who\'s the hero in your org for that?',bad:'Who\'s the decision-maker on budget?'},{label:'GENUINE INTEREST',good:'That\'s interesting — tell me more about how you got there.',bad:'OK — and what\'s your timeline for purchasing?'},{label:'GRACEFUL EXIT',good:'Totally fair — appreciate you giving me the moment. If anything ever changes around licensing renewals, I\'d love to be the call you make.',bad:'Are you sure? Just five more minutes?'}]
+  },
+  {
+    id: 'minto',
+    type: 'written',
+    emoji: '📙',
+    title: 'The Pyramid Principle',
+    author: 'Barbara Minto',
+    tagline: 'Answer first. Then support. The governing thought always comes before the detail.',
+    color: '#7c3aed',
+    bg: '#f5f3ff',
+    border: '#ddd6fe',
+    whenToUse: 'Email follow-ups, post-call summaries, anywhere you\'re writing for a busy reader. Minto is RETIRED from the cold-call scripts — it\'s structure for written, not spoken.',
+    coreMoves: ['SCQA: Situation then Complication then Question then Answer. The shape of every executive-ready email.','Answer first — then support. The subject line and first sentence carry the governing thought.','MECE: Mutually Exclusive, Collectively Exhaustive. Group ideas under a single thought.','In writing: never bury the lead. If they only read the first line, what\'s the takeaway?','One ask per email. Make the call-to-action unmistakable.'],
+    pitfall: 'Burying the lead under context. Reps love to set the scene first in writing too. Don\'t. Land the point in line one; let the body earn the right to support it.',
+    doThis: [{label:'SUBJECT LINE',good:'30 min to find what your M365 spend is duplicating.',bad:'Following up / Touching base / Quick question'},{label:'OPENING SENTENCE',good:'Quick recap: about a third of your M365 spend may be duplicated. The 30-min session will show you exactly where.',bad:'Per our conversation, I wanted to circle back and connect on the various areas we discussed regarding...'},{label:'SCQA STRUCTURE',good:'(S) You\'re standardized on E3. (C) Most E3 shops pay for endpoint, identity, and email security separately — even though E5 add-ons cover the same ground for less. (Q) Where\'s the actual overlap? (A) We map it in a 30-min session.',bad:'Hi Name, it was great speaking with you today. I wanted to follow up on our conversation about your Microsoft environment...'}]
+  },
+];
+
+
+var ASSESSMENTS = [
+  {
+    id: 'sha',
+    title: 'SaaS Discovery and Health Assessment',
+    category: 'Vendor Consolidation',
+    verified: true,
+    funded: true,
+    bestFor: '250-10,000 employees · SaaS-heavy environments',
+    summary: 'Fully funded expert-led engagement that shows customers all SaaS applications in use in their environment — including apps IT never approved or knew existed.',
+    segment: 'SMB, Commercial, and Enterprise',
+    techSpecs: '250-10,000 employees · SaaS/cloud licenses',
+    roles: 'Primary: IT and procurement · Secondary: Finance',
+    identifyingFactors: [
+      'Upcoming renewals (approx. 3 to 6 months until renewal)',
+      'Planning or recently completed a merger and acquisition',
+      'Increasing usage and adoption of cloud',
+      'Extensive software purchases with limited visibility into adoption',
+      'Lack of SaaS management tools or limited value from existing tools',
+      'Using AWS cloud and has pre-committed cloud spend',
+      'Interested in procuring software through marketplaces'
+    ],
+    pains: [
+      'Lack of visibility into SaaS applications, usage, and products eligible for purchase through marketplace',
+      'Decentralized IT procurement and shadow IT',
+      'Wasted SaaS spend or rising SaaS costs',
+      'Redundant software',
+      'Increasing security vulnerabilities and compliance risks',
+      'Lengthy deployment processes for new software products and vendors',
+      'Difficulty retiring cloud commitments'
+    ],
+    outcomes: [
+      'A complete inventory of all SaaS applications in use, including shadow IT',
+      'Identification of redundant applications with overlapping features',
+      'Usage data by user and application, revealing who is actually using what',
+      'Rightsizing opportunities to eliminate waste and reduce spend',
+      'Security posture insights, including unsanctioned apps and risky login behaviors',
+      'Guidance on optimizing procurement through AWS Marketplace (where applicable)',
+      '2-week portal access to explore full SaaS data (Grow) or lifetime access (Strategic)'
+    ],
+    discoveryQuestions: [
+      'How do you identify what applications are in your SaaS environment?',
+      'How do you know what shadow IT exists within your organization?',
+      'Are you confident that you\'re renewing only the subscriptions you use? What does your renewal process look like?',
+      'How do you pinpoint and eliminate redundant applications?',
+      'Do you have pre-committed cloud spend? Are you using marketplaces to procure your SaaS applications?',
+      'Do you understand the full benefits of procuring your SaaS applications using marketplaces?',
+      'Do you have visibility into account-level user data across your SaaS applications?'
+    ],
+    objections: [
+      { q: 'I don\'t have time', a: 'This assessment streamlines your workload and requires low lift from your team. It eliminates days of manual data work, providing complete visibility into your SaaS environment and practical steps for improvement.' },
+      { q: 'I\'m not comfortable putting an agent into our environment', a: 'The SAM+ Discovery Tool is a non-intrusive, read-only agent. It observes which applications are active — it does not interact with files, capture passwords, or read content. We have a full security whitepaper from Auvik that details every aspect of data collection, storage, and encryption.' },
+      { q: 'We already have a tool', a: 'Many tools rely only on email data or SSO logs, so they miss a significant portion of what\'s actually being used. The Auvik tool collects at both the endpoint and browser level, capturing shadow IT and web applications that email-based tools completely miss.' },
+      { q: 'We don\'t have the budget or time for this', a: 'This is a fully funded, low-lift assessment.' }
+    ],
+    stats: [
+      '51% of SaaS licenses go unused (Zylo, 2025)',
+      'SaaS spending expected to grow 15-20% annually (Gartner)',
+      '52% of IT professionals have limited visibility into shadow IT adoption (Auvik)',
+      'IT decision-makers estimate organizations waste 33% of SaaS spend (Flexera)'
+    ],
+    whySoftchoice: [
+      'Fully funded — high-value insights while eliminating hours of manual work for IT teams',
+      'Action-oriented: detailed reports + in-depth delivery calls to maximize value',
+      'Resource pool: 400+ software, licensing, and technical experts',
+      'Time to action: actionable insights delivered in 30 days on average',
+      '$8B in software spend under management, 20,000+ software entitlements supported, 30+ years of licensing expertise'
+    ],
+    stations: ['licensing', 'cloud', 'microsoft']
+  },
+  {
+    id: 'loa',
+    title: 'Licensing Optimization Assessment',
+    category: 'Microsoft-Led',
+    verified: true,
+    funded: true,
+    bestFor: 'SMB & Commercial · Microsoft licensing environments',
+    summary: 'Identifies and addresses usage inefficiencies and compliance risks across Microsoft agreements and licenses.',
+    segment: 'SMB, Commercial',
+    roles: 'Mid-senior level IT decision makers',
+    pains: [
+      'Overspending on unused or redundant Microsoft licenses',
+      'Compliance risk from over or under-licensing',
+      'No clear visibility into what\'s actually being used vs. what\'s being paid for',
+      'Upcoming renewals with no optimization strategy',
+      'Lack of internal expertise to navigate complex Microsoft licensing',
+      'Difficulty proving ROI on Microsoft investments to leadership'
+    ],
+    howItWorks: [
+      { step: 1, title: 'Kick-off', desc: 'Align on scope, goals, and data access requirements.' },
+      { step: 2, title: 'Tool deployment & data gathering', desc: 'Deploy lightweight tooling to collect usage and entitlement data.' },
+      { step: 3, title: 'Data analysis', desc: 'Analyze usage patterns, identify gaps, overlaps, and optimization opportunities.' },
+      { step: 4, title: 'Customer meeting', desc: 'Present findings, recommendations, and next steps.' }
+    ],
+    discoveryQuestions: [
+      'Walk me through your current Microsoft agreement — CSP, EA, or something else?',
+      'When does your current agreement renew, and has anyone reviewed it recently?',
+      'How confident are you that the licenses you\'re paying for are actually being used?',
+      'Are you aware of any compliance concerns or audit risk in your current licensing setup?',
+      'Who owns the Microsoft licensing decision internally?'
+    ],
+    outcomes: [
+      'Audit preparation and reduced compliance risk',
+      'Clear picture of over and under-licensing across the environment',
+      'Actionable recommendations for cost reduction and optimization',
+      'Ongoing mentorship and guidance for long-term licensing health'
+    ],
+    whySoftchoice: [
+      'Microsoft partnership: deep technical and business expertise across the Microsoft portfolio',
+      'Experience: managing complex Microsoft licensing environments for 30+ years',
+      'Expertise: certified resources across M365, Azure, and Microsoft Security',
+      'Cost-effective: fully funded assessment with no cost to the customer'
+    ],
+    pricingNote: 'The Assessment Team will define pricing, funding, and scope of work.',
+    stations: ['microsoft', 'licensing']
+  },
+  {
+    id: 'cra',
+    title: 'Cloud Readiness Assessment',
+    category: 'Modernization',
+    verified: true,
+    funded: true,
+    bestFor: 'Any segment · Cloud migration to AWS / Azure / GCP / VMware',
+    summary: 'Fully funded service that offers a cost-effective business case for the migration or modernization of workloads to AWS, Azure, GCP, or VMware on any cloud.',
+    segment: 'Any segment',
+    pains: [
+      'No clear business case or ROI model for cloud migration',
+      'Uncertainty about which workloads to move and in what order',
+      'Concern about cloud costs spiraling post-migration',
+      'Lack of internal cloud expertise to plan and execute migration',
+      'Compliance and security concerns about moving to cloud',
+      'Existing on-prem investments that are difficult to justify replacing',
+      'Multiple cloud options with no clear recommendation'
+    ],
+    howItWorks: [
+      { step: 1, title: 'Data gathering', desc: 'Collect environment data, workload inventory, and current cost baseline.' },
+      { step: 2, title: 'Analysis and recommendations', desc: 'Forecasting, cloud cost efficiency modeling, licensing analysis, lifecycle analysis, and business case development.' },
+      { step: 3, title: 'Reports and next steps', desc: 'Deliver findings, migration roadmap, and recommended next steps with Softchoice.' }
+    ],
+    outcomes: [
+      'Clear migration or modernization business case with ROI model',
+      'Workload prioritization and sequencing recommendations',
+      'Cloud cost forecast and optimization opportunities',
+      'Risk and compliance assessment for target cloud environment',
+      'Licensing optimization recommendations (Microsoft, VMware, etc.)',
+      'Defined next steps and implementation roadmap'
+    ],
+    whySoftchoice: [
+      'Azure Expert MSP, AWS Migration Services Competency, Google Cloud partner',
+      'VMware Cloud Provider and Cloud Verified partner',
+      'Microsoft FastTrack Ready Partner',
+      'Fully funded — no cost to the customer',
+      'End-to-end capability from assessment through implementation and managed services'
+    ],
+    stations: ['cloud', 'datacenter', 'microsoft']
+  },
+  {
+    id: 'caoa',
+    title: 'Cloud Architecture Optimization Assessment',
+    category: 'Modernization',
+    verified: true,
+    funded: true,
+    bestFor: 'Any segment · 6-18 months in cloud · >$10K/month cloud spend',
+    summary: 'Data-driven assessment that evaluates a customer\'s cloud environment to provide improvement recommendations aligned with industry best practices and the Well-Architected Framework.',
+    pricingNote: 'Deliverables may vary by Cloud Vendor and/or Billing Type. Customers with Azure CSP and AWS billing through a different partner do not have Billing Data available which will impact Cost Optimization recommendations.',
+    segment: 'Any segment',
+    techSpecs: '6-18 months in cloud · >$10K/month cloud spend · AWS, Google, or Azure environment · Need to optimize spend for modernization · Governance requirements · Lack of in-house cloud expertise',
+    pains: [
+      'Cloud spend growing faster than expected with no clear optimization path',
+      'Architecture gaps creating performance or reliability issues',
+      'Security vulnerabilities in the cloud environment',
+      'Difficulty meeting compliance requirements in cloud',
+      'No visibility into cost drivers or waste',
+      'Cloud environment not aligned to Well-Architected Framework best practices',
+      'Operational complexity slowing down the business',
+      'Lack of internal expertise to optimize cloud architecture',
+      'Technical debt accumulating from rapid cloud adoption'
+    ],
+    deliverables: ['1-hour presentation covering all findings and recommendations', 'Excel appendix with detailed data'],
+    wellArchitectedPillars: ['Cost optimization', 'Operational excellence', 'Performance efficiency', 'Reliability', 'Security'],
+    outcomes: [
+      'Architecture recommendations aligned to the Well-Architected Framework',
+      'Cost optimization opportunities identified and quantified',
+      'Security and compliance gap assessment with remediation recommendations',
+      'Performance and reliability improvement roadmap'
+    ],
+    whySoftchoice: [
+      'Fully funded — no cost to the customer',
+      'Industry-leading partnerships across AWS, Azure, and Google Cloud',
+      'Comprehensive capability from assessment through implementation'
+    ],
+    stations: ['cloud', 'microsoft']
+  },
+  {
+    id: 'dcoa',
+    title: 'Data Center Optimization Assessment',
+    category: 'Modernization',
+    verified: true,
+    funded: true,
+    bestFor: 'Any segment · Hybrid or on-prem · Mid-journey modernization',
+    summary: 'Scoped assessment to rearchitect the customer\'s data center environment with a workload-focused approach — across servers, storage, virtualization, backup, file system, or public cloud migration.',
+    pricingNote: 'Typically funded by Softchoice, no cost to client unless scope/complexity requires payment to cover labor cost.',
+    segment: 'Any segment',
+    techSpecs: 'Hybrid or on-premises environment · Mid-journey modernization · Complex multi-vendor infrastructure',
+    pains: [
+      'Aging infrastructure creating performance and reliability risks',
+      'Rising maintenance costs on legacy hardware',
+      'No clear modernization roadmap or business case',
+      'Complexity of multi-vendor environment creating management overhead',
+      'Workloads not optimally placed (on-prem vs. cloud)',
+      'Backup and recovery gaps creating business continuity risk'
+    ],
+    howItWorks: [
+      { step: 1, title: 'Discovery', desc: 'Understand the current environment, workloads, and business requirements.' },
+      { step: 2, title: 'Data collection', desc: 'Gather detailed infrastructure data, performance metrics, and cost information.' },
+      { step: 3, title: 'Workshop', desc: 'Collaborative session to align on priorities, constraints, and target state.' },
+      { step: 4, title: 'Recommendations', desc: 'Deliver findings, modernization roadmap, and phased implementation plan.' }
+    ],
+    whySoftchoice: [
+      'SAM+ Hub: proprietary self-serve software management capabilities',
+      'VMware certifications and awards including Master Services Competency',
+      'Advanced Technology Center (ATC): rapid prototyping across vSphere, vSAN, NSX, VCF',
+      'Full-service provider from assessment through managed services',
+      '350+ technical experts certified across major infrastructure platforms',
+      'Cisco Advanced Services Partner with Master Collaboration, Security, and Advanced Customer Experience certs',
+      'CCIE certified resources and Tier 1, 2, and 3 support'
+    ],
+    stations: ['datacenter', 'cloud', 'storage']
+  },
+  {
+    id: 'car',
+    title: 'Cisco Asset Review (CAR)',
+    category: 'Cisco-Led',
+    verified: true,
+    funded: true,
+    bestFor: 'Cisco infrastructure customers · End-of-life / warranty visibility',
+    summary: 'Concise report of Cisco assets (in-warranty, out of support, nearing end of life - LDOS). Guidance highlighting risks and next steps to ensure operational continuity. Softchoice gives the visibility to make confident decisions on what is next — including AI-ready infrastructure.',
+    pricingNote: 'Customer must sign a Letter of Authorization (LOA) before assessment begins.',
+    stations: ['cisco', 'networking', 'lifecycle']
+  },
+  {
+    id: 'net',
+    title: 'Networking Services & Assessments',
+    category: 'Networking',
+    verified: true,
+    funded: false,
+    bestFor: 'SMB, Commercial & Enterprise · Network modernization & AI readiness',
+    summary: 'Softchoice\'s collection of networking services and assessments to help customers modernize and optimize their network infrastructure — from connecting sites and extending to the cloud to securing remote access.',
+    segment: 'SMB, Commercial, and Enterprise',
+    includedServices: [
+      { name: 'Cisco Asset Review (CAR)', funded: true, note: 'LOA required' },
+      { name: 'Cisco Security Assessment (Blueprint Report)', funded: true },
+      { name: 'Predictive Wireless Assessment', funded: false, price: '$10K-$50K' },
+      { name: 'Site Survey Wireless Assessment', funded: false, price: 'Based on sq ft & # of floors' },
+      { name: 'Network Assessment', note: 'Currently delivered by WWT' },
+      { name: 'Pre-Deployment Hybrid Wireless Site Survey', note: 'Currently delivered by WWT' }
+    ],
+    pains: [
+      'AI readiness — Legacy networks cannot meet performance/bandwidth demands; orgs struggle to scale for emerging tech',
+      'Performance & reliability risks — Network latency & congestion hurt app performance & UX; BYOD and IoT increase bandwidth demands',
+      'Limited end-to-end visibility — Blind spots slow troubleshooting, reduce confidence in network performance',
+      'Rising network and cloud costs — Inefficient traffic routing increases WAN/cloud expenses; lack of automation increases costs',
+      'Operational complexity & skills shortage — Skill gaps drive need for simplified network ops; teams firefight outdated configs',
+      'Fragmented security posture — Disconnected tools create gaps in security across environments'
+    ],
+    identifyingFactors: [
+      'Upcoming hardware renewals or hardware end-of-life (EOL)',
+      'Customers exploring emerging technology and want to evaluate network capabilities',
+      'Customers expanding or reducing business and need to assess impact on network',
+      'Current infrastructure is a mix of legacy equipment with manual lifecycle management',
+      'In-house technical team is unfamiliar with vendors and can\'t determine which technology would make their network more efficient',
+      'In-house team lacks expertise needed to design and configure a modern data center and/or network'
+    ],
+    conversationEntryPoints: [
+      { pain: 'Aging Hardware: LDOS', desc: 'Networking equipment nearing end-of-life; unclear on timeline, impact, and next steps.', recommended: ['Cisco Asset Review (CAR)'] },
+      { pain: 'Proactive software refresh', desc: 'Traditional network architectures proving inadequate for distributed modern work.', recommended: ['Cisco Asset Review (CAR)', 'Cisco Security Assessment (Blueprint Report)'] },
+      { pain: 'Plans with AI or modern applications', desc: 'Interested in cloud, AI, and newer applications but concerned current network cannot meet demands.', recommended: ['Network Assessment — Network Insight Accelerator', 'Network Assessment — Network Readiness Analysis', 'Network Assessment — Holistic Network Evaluation'] },
+      { pain: 'Wi-Fi gaps', desc: 'Customer experiencing dead spots and coverage issues with their Wi-Fi network.', recommended: ['Predictive Wireless Assessment', 'Pre-Deployment Hybrid Wireless Site Survey'] },
+      { pain: 'Internal skills gaps', desc: 'Internal capacity consumed by day-to-day management with no time to focus on strategic initiatives.', recommended: ['Hybrid Cloud Managed Services'] }
+    ],
+    discoveryQuestions: [
+      'Are you interested in building AI solutions for your business and/or end users?',
+      'To be successful, your AI journey starts with ensuring your infrastructure is prepared to support it. Do you want to optimize your Network?',
+      'Do you have concerns about applications, leveraging automation, reducing manual intervention and enhancing operational efficiency?',
+      'Are you agile, efficient and capable of supporting cutting-edge innovations?',
+      'How old is your network?',
+      'How do you use your network today? Does it function the way you expect it to?',
+      'How secure is your network?',
+      'Is your firewall solution integrated with your endpoint, cloud, or email security platforms?',
+      'Are you planning any changes to your physical workspace (e.g., office expansion, redesign, return to office)?'
+    ],
+    objections: [
+      { q: 'We are thinking of leaving Cisco for Arista', a: 'Softchoice will recommend the vendor best suited for your needs. While Arista excels in high-performance data centers and cloud environments, Cisco offers a broader, more versatile range of solutions for various networking needs, including campus, branch, and security.' },
+      { q: 'My team doesn\'t have the time to keep up with all the new technology changes', a: 'Softchoice can do this for you. Our relationship with the leading industry vendors allows Softchoice to be your one point of contact. We have tools, training, and technical resources to build a network that accomplishes your organization outcomes.' },
+      { q: 'We don\'t have the budget for this yet', a: 'Softchoice can prepare a phased implementation plan with milestones. Typically, each phase is broken down in stages that are easy to budget for.' },
+      { q: 'Can I just purchase new infrastructure and think about using professional services later?', a: 'Yes, of course — Softchoice can always provide any of our professional services at a later date. However, please note sometimes vendor funding is available when hardware and Softchoice service are bundled at the time of purchase.' }
+    ],
+    whySoftchoice: [
+      '350+ technical experts certified in optimizing infrastructures with Azure, AWS, Google, VMware and Cisco',
+      'Cisco Advanced Services Partner with Master Collaboration, Security, and Advanced Customer Experience Certs',
+      'CCIE certified resources and Tier 1, 2 and 3 support',
+      'Cisco Canadian Application Resiliency Partner of the Year, 2023',
+      'Canada\'s Commercial Impact Partner of the Year, 2024',
+      '20+ year partnership, ranked within Top 20 Cisco managed services providers globally',
+      'Cisco Gold Integrator and Provider'
+    ],
+    stations: ['networking', 'cisco', 'datacenter']
+  }
+];
+
+
+
+var EVENTS = [
+  { solution:'Cisco', title:'Digital Acceleration Executive Roundtable for Public Sector Leaders', date:'May 26', category:'Vendor Led', location:'Mississauga, ON', access:'Invite Only (Commercial Accounts)', sfCampaign:'Cisco-Vendor Led: Event (in person) - Exec-Roundtable-Toronto-PublicSector - M', lead:'Kiana Desroches' },
+  { solution:'AWS', title:'From legacy systems to AI-ready architecture: how to modernize for AI with Intel and AWS', date:'May 26', category:'AI-Powered Possibilities', location:'Virtual', access:'Registration', sfCampaign:'AWS - Cloud: Webinar (live) - Modernize for AI - May26', lead:'Sheza Qureshi' },
+  { solution:'Microsoft', title:'Unlock the full potential of Microsoft Azure', date:'May 27', category:'Master Microsoft', location:'Virtual', access:'Registration', sfCampaign:'Microsoft - Cloud: Webinar (live) - Azure-CIE - May27', lead:'Jamie Galsim' },
+  { solution:'Cisco', title:'Digital Acceleration Executive Roundtable for Legal Leaders', date:'May 27', category:'Vendor Led', location:'Toronto, ON', access:'Invite Only (Commercial Accounts)', sfCampaign:'Cisco-Vendor Led: Event (in person) - Exec-Roundtable-Toronto-Legal - May27', lead:'Kiana Desroches' },
+  { solution:'Cisco', title:'Digital Acceleration Executive Roundtable (limited capacity)', date:'May 28', category:'Vendor Led', location:'Denver, CO (Commercial)', access:'Invite Only', sfCampaign:'Cisco-Vendor Led: Event (in person) - ExecRoundtableDenver - May28', lead:'Jamie Galsim' },
+  { solution:'Microsoft', title:'Microsoft Copilot Studio', date:'June 3', category:'AI-Powered Possibilities', location:'Virtual', access:'Registration', sfCampaign:'Microsoft - AI: Webinar (live) - Copilot-Studio - Jun3', lead:'Sheza Qureshi' },
+  { solution:'AWS', title:'Secret Soiree with Softchoice and AWS', date:'June 3', category:'Vendor Led', location:'Toronto, ON (Commercial)', access:'Invite Only', sfCampaign:'AWS - Vendor led: Event (in person) - SecretSoiree2026 - Jun3', lead:'Jamie Galsim' },
+  { solution:'Cisco', title:'Digital Acceleration Executive Roundtable for Manufacturing Leaders', date:'June 9', category:'Vendor Led', location:'Hamilton, ON', access:'Invite Only (Commercial Accounts)', sfCampaign:'Cisco-Vendor Led: Event (in person) - Exec-Roundtable-SWO - Jun9', lead:'Kiana Desroches' },
+  { solution:'AWS', title:'An evening at AC Bar & Bistro with WWT, Softchoice and AWS', date:'June 10', category:'Vendor Led', location:'Los Angeles, CA (Commercial)', access:'Invite Only', sfCampaign:'AWS - Vendor Led: Event (in person) - LASummitReception - Jun10', lead:'Jamie Galsim' },
+  { solution:'Cisco', title:'Experience the RBC Open with Softchoice and Cisco', date:'June 11', category:'Vendor Led', location:'Caledon, ON', access:'Invite Only', sfCampaign:'Cisco - Event: In-person - RBC Open - Jun11', lead:'Sheza Qureshi' },
+  { solution:'Microsoft', title:'Experience the RBC Open with Softchoice and Microsoft', date:'June 12', category:'Vendor Led', location:'Caledon, ON', access:'Invite Only', sfCampaign:'Microsoft - Event: In-person - RBC Open - Jun12', lead:'Sheza Qureshi' },
+  { solution:'Multi', title:'Kick Off FIFA World Cup Toronto at the FIFA Fan Festival', date:'June 12', category:'Vendor Led', location:'Toronto, ON', access:'Invite Only', sfCampaign:'Multi - PCMI: Event (in person) - FIFAFanExperience-TO - Jun12', lead:'Madeline Neziol' },
+  { solution:'Cisco', title:'Table ronde sur l\'acceleration numerique', date:'June 16', category:'Vendor Led', location:'Montreal, QB', access:'Invite Only (Commercial Accounts)', sfCampaign:'Cisco - Vendor Led: Event (in person) - Exec-Roundtable-Montreal - Jun16', lead:'Kiana Desroches' },
+  { solution:'Cisco', title:'Digital Acceleration Executive Roundtable (limited capacity)', date:'June 16', category:'Vendor Led', location:'Irvine, CA (commercial)', access:'Invite Only', sfCampaign:'Cisco - Vendor Led: Event (in person) - ExecRoundtableIrvine - Jun16', lead:'Jamie Galsim' },
+  { solution:'AWS', title:'Lunch break with Softchoice and AWS at Cedric\'s at The Shed', date:'June 17', category:'Vendor Led', location:'New York City, NY (Commercial)', access:'Invite Only', sfCampaign:'AWS - Vendor Led: Event (in person) - AWSLunchBreak - Jun17', lead:'Jamie Galsim' },
+  { solution:'Microsoft', title:'Plotting your data estate journey with Microsoft Fabric', date:'June 17', category:'AI-Powered Possibilities', location:'Virtual', access:'Registration', sfCampaign:'Microsoft - AI: Webinar (live) - Azure-Fabric-CIE - Jun17', lead:'Kiana Desroches' },
+  { solution:'Cisco', title:'Digital Acceleration Executive Roundtable (limited capacity)', date:'June 18', category:'Vendor Led', location:'San Diego, CA (commercial)', access:'Invite Only', sfCampaign:'Cisco - Vendor Led: Event (in person) - ExecRoundtableSanDiego - Jun18', lead:'Jamie Galsim' },
+  { solution:'Cisco', title:'Digital Acceleration Executive Roundtable (limited capacity)', date:'June 23', category:'Vendor Led', location:'Atlanta, GA', access:'Invite Only', sfCampaign:'Cisco - Vendor Led: Event (in person) - ExecRoundtableAtlanta - Jun23', lead:'Jamie Galsim' },
+  { solution:'Cisco', title:'Give back with Cisco & Softchoice at Citi Field', date:'June 24', category:'Vendor Led', location:'New York City, NY (Commercial)', access:'Invite Only', sfCampaign:'Cisco - Vendor Led: Event (in person) - NYMets - Jun24', lead:'Jamie Galsim' },
+  { solution:'Microsoft', title:'Microsoft 365 Copilot - Customer Immersion Experience', date:'June 24', category:'AI-Powered Possibilities', location:'Virtual', access:'Registration', sfCampaign:'Microsoft - AI: Webinar (live) - Copilot-CIE - Jun24', lead:'Sheza Qureshi' },
+  { solution:'Intel', title:'Why AI Powered Devices Are the Foundation of the Modern Workplace', date:'June 25', category:'Vendor Led', location:'Virtual', access:'Registration', sfCampaign:'Intel - AI: Webinar (live) - ModernWorkplace - Jun25', lead:'Jamie Galsim' },
+  { solution:'Cisco', title:'Digital Acceleration Executive Roundtable for Retail Leaders', date:'July 15', category:'Vendor Led', location:'Toronto, ON', access:'Invite Only', sfCampaign:'Cisco - Vendor Led: Event (in person) - Exec-Roundtable-Toronto-Retail - Jul15', lead:'Kiana Desroches' },
+  { solution:'Multi', title:'The Softchoice Invitational', date:'July 21', category:'Vendor Led', location:'King City', access:'Invite Only', sfCampaign:'Multi - Vendor Led: Event (in person) - Toronto-Enterprise-Golf - Jul21', lead:'Kiana Desroches' }
+];
+
+
+// ── PLAYBOOK RENDERER ────────────────────────────────────────────────────────
+function renderPlaybook() {
+  var el = document.getElementById('playbook-content');
+  if (!el) return;
+  var spoken = PLAYBOOK.filter(function(p){return p.type==='spoken';});
+  var written = PLAYBOOK.filter(function(p){return p.type==='written';});
+
+  function makeCard(p) {
+    return '<div style="background:#fff;border:2px solid '+p.border+';border-radius:12px;padding:16px;cursor:pointer" onclick="scrollToMethod(\''+p.id+'\')">' +
+      '<div style="font-size:18px;margin-bottom:6px">'+p.emoji+'</div>' +
+      '<div style="font-size:10px;font-weight:700;color:'+p.color+';letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">'+p.id.toUpperCase()+'</div>' +
+      '<div style="font-size:14px;font-weight:700;margin-bottom:4px">'+p.title+'</div>' +
+      '<div style="font-size:11px;color:#4a5068;margin-bottom:6px">by '+p.author+'</div>' +
+      '<div style="font-size:12px;color:'+p.color+';font-style:italic">'+p.tagline+'</div>' +
+    '</div>';
+  }
+
+  var html = '<div style="padding:28px 32px">' +
+    '<div style="font-size:11px;font-weight:700;color:#6c47ff;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">&#128218; METHODOLOGY PLAYBOOK</div>' +
+    '<h1 style="font-size:32px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px">The methodologies behind the scripts.</h1>' +
+    '<p style="color:#4a5068;font-size:14px;max-width:640px;margin-bottom:8px">Every spoken script in Live Call Mode is built from four methodologies. Email follow-ups use a fifth (Minto/SCQA) for written-only structure.</p>' +
+    '<p style="font-size:12px;color:#8b92a8;font-style:italic;margin-bottom:24px">Spoken tone blend: CCS honesty + Challenger insight + Modern Consultative curiosity + Carnegie warmth. Minto is for written follow-ups only.</p>' +
+    '<div style="font-size:11px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">&#9742; SPOKEN METHODOLOGIES</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:32px">' +
+    spoken.map(makeCard).join('') +
+    '</div>' +
+    '<div style="font-size:11px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">&#9998; WRITTEN METHODOLOGY (EMAILS & FOLLOW-UPS ONLY)</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:40px">' +
+    written.map(makeCard).join('') +
+    '</div>' +
+    PLAYBOOK.map(function(p) {
+      var doThisHtml = p.doThis.map(function(d) {
+        return '<div style="background:#fff;border:1px solid #e2e5f0;border-radius:8px;padding:14px;margin-bottom:10px">' +
+          '<div style="font-size:10px;font-weight:700;color:#6c47ff;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">'+d.label+'</div>' +
+          '<div style="margin-bottom:8px"><div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px"><span style="color:#16a34a;font-size:16px;flex-shrink:0">&#10004;</span><div style="font-size:13px;line-height:1.5;font-style:italic">'+d.good+'</div></div></div>' +
+          '<div><div style="display:flex;align-items:flex-start;gap:8px"><span style="color:#e63946;font-size:16px;flex-shrink:0">&#10008;</span><div style="font-size:13px;line-height:1.5;font-style:italic;color:#8b92a8;text-decoration:line-through">'+d.bad+'</div></div></div>' +
+        '</div>';
+      }).join('');
+      return '<div id="method-'+p.id+'" style="background:'+p.bg+';border:2px solid '+p.border+';border-radius:12px;padding:28px;margin-bottom:24px">' +
+        '<div style="font-size:11px;font-weight:700;color:'+p.color+';letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">'+(p.type==='spoken'?'SPOKEN · ':'WRITTEN COMMUNICATION · ')+p.author.toUpperCase()+'</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="font-size:28px">'+p.emoji+'</span><h2 style="font-size:26px;font-weight:800">'+p.title+'</h2></div>' +
+        '<div style="font-size:14px;color:'+p.color+';font-style:italic;margin-bottom:24px">'+p.tagline+'</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">' +
+          '<div>' +
+            '<div style="font-size:11px;font-weight:700;color:#4a5068;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">WHEN TO USE</div>' +
+            '<div style="font-size:13px;line-height:1.6;margin-bottom:16px">'+p.whenToUse+'</div>' +
+            '<div style="font-size:11px;font-weight:700;color:#4a5068;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">CORE MOVES</div>' +
+            '<div style="margin-bottom:16px">'+p.coreMoves.map(function(m){return '<div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:'+p.color+';font-size:16px;flex-shrink:0">&#10003;</span><div style="font-size:13px;line-height:1.5">'+m+'</div></div>';}).join('')+'</div>' +
+            '<div style="background:#fee2e2;border-left:3px solid #e63946;border-radius:4px;padding:12px"><div style="font-size:11px;font-weight:700;color:#e63946;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">&#9888; PITFALL</div><div style="font-size:13px;color:#7f1d1d;line-height:1.5">'+p.pitfall+'</div></div>' +
+          '</div>' +
+          '<div><div style="font-size:11px;font-weight:700;color:#4a5068;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">DO THIS / NOT THIS</div>'+doThisHtml+'</div>' +
+        '</div>' +
+      '</div>';
+    }).join('') +
+    '<div style="text-align:center;padding:40px 20px;border-top:1px solid #e2e5f0;margin-top:16px">' +
+      '<div style="font-size:36px;margin-bottom:16px">&#10078;</div>' +
+      '<div style="font-size:20px;font-style:italic;max-width:520px;margin:0 auto 8px;font-weight:600">"The best reps don\'t sound like reps. They sound like a human being who\'s actually paying attention."</div>' +
+      '<div style="font-size:11px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase">THE WHOLE POINT OF THIS PLAYBOOK</div>' +
+    '</div>' +
+  '</div>';
+  el.innerHTML = html;
+}
+function scrollToMethod(id) {
+  var el = document.getElementById('method-'+id);
+  if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ── RESOURCES RENDERER ───────────────────────────────────────────────────────
+function renderResources() {
+  var el = document.getElementById('resources-content');
+  if (!el) return;
+  var filter = window.resourceFilter || 'All';
+  var search = (window.resourceSearch || '').toLowerCase();
+  var solColors = {Cisco:'#0f1117',Microsoft:'#2563eb',AWS:'#f59e0b',Intel:'#0068b5',Multi:'#7c3aed'};
+
+  var assessHtml = ASSESSMENTS.filter(function(a) {
+    if (filter !== 'All' && filter !== 'Assessment') return false;
+    if (search && a.title.toLowerCase().indexOf(search)<0 && a.summary.toLowerCase().indexOf(search)<0) return false;
+    return true;
+  }).map(function(a) {
+    return '<div style="background:#fff;border-radius:12px;border:1px solid #e2e5f0;overflow:hidden;cursor:pointer" onclick="openAssessment(\''+a.id+'\')">' +
+      '<div style="background:#0f1117;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">' +
+        '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.6);letter-spacing:.08em;text-transform:uppercase">Assessment</div>' +
+        '<div style="background:rgba(255,255,255,.15);color:rgba(255,255,255,.8);font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px">'+a.category+'</div>' +
+      '</div>' +
+      '<div style="padding:14px 16px">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">' +
+          '<div style="font-size:15px;font-weight:700;flex:1;margin-right:8px">'+a.title+'</div>' +
+          (a.verified ? '<span style="background:#d1fae5;color:#065f46;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;white-space:nowrap;flex-shrink:0">&#10003; Verified</span>' : '') +
+        '</div>' +
+        (a.funded ? '<span style="background:#d1fae5;color:#065f46;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;margin-right:6px">Fully Funded</span>' : '') +
+        '<span style="background:#f3f0ff;color:#7c3aed;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px">'+a.bestFor+'</span>' +
+        '<div style="font-size:12px;color:#4a5068;line-height:1.5;margin-top:10px">'+a.summary.substring(0,120)+'...</div>' +
+        '<div style="font-size:11px;color:#6c47ff;margin-top:10px;font-weight:600">Open full detail &rarr;</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  var eventHtml = EVENTS.filter(function(e) {
+    if (filter !== 'All' && filter !== 'Event') return false;
+    if (search && e.title.toLowerCase().indexOf(search)<0 && e.solution.toLowerCase().indexOf(search)<0) return false;
+    return true;
+  }).map(function(e) {
+    var col = solColors[e.solution] || '#6c47ff';
+    var isInvite = e.access.indexOf('Invite') >= 0;
+    return '<div style="background:#fff;border-radius:12px;border:1px solid #e2e5f0;overflow:hidden">' +
+      '<div style="background:'+col+';padding:10px 16px;display:flex;align-items:center;justify-content:space-between">' +
+        '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.08em;text-transform:uppercase">Event &middot; '+e.solution+'</div>' +
+        '<div style="background:rgba(255,255,255,.2);color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px">'+e.category+'</div>' +
+      '</div>' +
+      '<div style="padding:14px 16px">' +
+        '<div style="font-size:15px;font-weight:700;margin-bottom:8px;line-height:1.4">'+e.title+'</div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
+          '<span style="background:#f7f8fc;color:#4a5068;font-size:11px;font-weight:600;padding:3px 8px;border-radius:8px">&#128197; '+e.date+'</span>' +
+          '<span style="background:#f7f8fc;color:#4a5068;font-size:11px;font-weight:600;padding:3px 8px;border-radius:8px">&#128205; '+e.location+'</span>' +
+          '<span style="background:'+(isInvite?'#fef3c7':'#d1fae5')+';color:'+(isInvite?'#92400e':'#065f46')+';font-size:11px;font-weight:600;padding:3px 8px;border-radius:8px">'+(isInvite?'&#128274; Invite Only':'&#128275; Registration')+'</span>' +
+        '</div>' +
+        '<div style="font-size:11px;color:#8b92a8">Lead: '+e.lead+'</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  var winWireHtml = (filter === 'All' || filter === 'Win Wire') ?
+    '<div style="background:#fff;border-radius:12px;border:2px dashed #e2e5f0;padding:40px;text-align:center;color:#8b92a8;grid-column:1/-1">' +
+      '<div style="font-size:32px;margin-bottom:12px">&#127942;</div>' +
+      '<div style="font-size:15px;font-weight:600;margin-bottom:6px">Win Wires coming soon</div>' +
+      '<div style="font-size:13px">Pending internal clearance. Real customer wins will appear here.</div>' +
+    '</div>' : '';
+
+  var filterBtns = ['All','Assessment','Event','Win Wire'].map(function(f) {
+    var active = filter === f;
+    return '<button style="padding:5px 14px;border-radius:20px;border:1px solid '+(active?'#0f1117':'#e2e5f0')+';background:'+(active?'#0f1117':'#fff')+';color:'+(active?'#fff':'#4a5068')+';font-size:12px;font-weight:500;cursor:pointer" onclick="setResourceFilter(\''+f+'\')">'+f+'</button>';
+  }).join('');
+
+  el.innerHTML =
+    '<div style="padding:28px 32px">' +
+      '<div style="font-size:11px;font-weight:700;color:#6c47ff;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">&#128196; RESOURCES</div>' +
+      '<h1 style="font-size:32px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px">Assessments, events & more.</h1>' +
+      '<p style="color:#4a5068;font-size:14px;margin-bottom:20px">Everything Softchoice offers — positioned to the right conversation at the right moment.</p>' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap">' +
+        '<input style="padding:9px 14px;border:1px solid #e2e5f0;border-radius:20px;font-size:13px;font-family:inherit;width:300px" placeholder="Search resources..." oninput="setResourceSearch(this.value)" />' +
+        filterBtns +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">' +
+        assessHtml + eventHtml + winWireHtml +
+      '</div>' +
+    '</div>';
+}
+function setResourceFilter(f) {
+  window.resourceFilter = f;
+  renderResources();
+}
+function setResourceSearch(q) {
+  window.resourceSearch = q;
+  renderResources();
+}
+
+function openAssessment(id) {
+  var a = ASSESSMENTS.find(function(x){return x.id===id;});
+  if (!a) return;
+  // Build modal content
+  var sections = '';
+  if (a.pricingNote) sections += '<div style="background:#eff6ff;border-left:3px solid #2563eb;border-radius:4px;padding:12px;margin-bottom:16px;font-size:13px;color:#1e40af">'+a.pricingNote+'</div>';
+  sections += '<div style="font-size:14px;line-height:1.6;color:#0f1117;margin-bottom:20px">'+a.summary+'</div>';
+  if (a.segment) sections += '<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">WHO IT\'S FOR</div><div style="font-size:13px;color:#4a5068">Segment: '+a.segment+'</div>'+(a.roles?'<div style="font-size:13px;color:#4a5068;margin-top:4px">Roles: '+a.roles+'</div>':'')+(a.techSpecs?'<div style="font-size:13px;color:#4a5068;margin-top:4px">'+a.techSpecs+'</div>':'')+'</div>';
+  if (a.identifyingFactors && a.identifyingFactors.length) sections += '<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">IDENTIFYING FACTORS</div>'+a.identifyingFactors.map(function(f){return '<div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#6c47ff;flex-shrink:0">&#10003;</span><div style="font-size:13px;color:#4a5068">'+f+'</div></div>';}).join('')+'</div>';
+  if (a.pains && a.pains.length) sections += '<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">PAIN POINTS</div>'+a.pains.map(function(p){return '<div style="background:#fef2f2;border-left:2px solid #e63946;padding:8px 10px;border-radius:4px;font-size:13px;color:#7f1d1d;margin-bottom:6px">'+p+'</div>';}).join('')+'</div>';
+  if (a.discoveryQuestions && a.discoveryQuestions.length) sections += '<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">DISCOVERY QUESTIONS</div>'+a.discoveryQuestions.map(function(q,i){return '<div style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start"><div style="width:22px;height:22px;border-radius:50%;background:#0f1117;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+(i+1)+'</div><div style="font-size:13px;line-height:1.5">'+q+'</div></div>';}).join('')+'</div>';
+  if (a.howItWorks && a.howItWorks.length) sections += '<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">HOW IT WORKS</div>'+a.howItWorks.map(function(s){return '<div style="background:#eff6ff;border-radius:8px;padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start"><div style="width:28px;height:28px;border-radius:50%;background:#2563eb;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+s.step+'</div><div><div style="font-size:13px;font-weight:600;margin-bottom:2px">'+s.title+'</div><div style="font-size:12px;color:#4a5068">'+s.desc+'</div></div></div>';}).join('')+'</div>';
+  if (a.outcomes && a.outcomes.length) sections += '<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">OUTCOMES FOR THE CUSTOMER</div>'+a.outcomes.map(function(o){return '<div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#16a34a;flex-shrink:0">&#10003;</span><div style="font-size:13px;color:#0f1117">'+o+'</div></div>';}).join('')+'</div>';
+  if (a.objections && a.objections.length) sections += '<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">COMMON OBJECTIONS & RESPONSES</div>'+a.objections.map(function(o){return '<div style="margin-bottom:12px"><div style="background:#fef2f2;border-radius:6px;padding:8px 10px;font-size:13px;font-weight:600;color:#7f1d1d;margin-bottom:4px">Objection: '+o.q+'</div><div style="background:#f0fdf4;border-radius:6px;padding:8px 10px;font-size:13px;color:#14532d">Response: '+o.a+'</div></div>';}).join('')+'</div>';
+  if (a.whySoftchoice && a.whySoftchoice.length) sections += '<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">WHY SOFTCHOICE</div>'+a.whySoftchoice.map(function(w){return '<div style="display:flex;gap:8px;margin-bottom:6px"><span style="color:#2563eb;flex-shrink:0">&#10003;</span><div style="font-size:13px;color:#0f1117">'+w+'</div></div>';}).join('')+'</div>';
+  if (a.stats && a.stats.length) sections += '<div style="margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">STATISTICS</div>'+a.stats.map(function(s){return '<div style="background:#f3f0ff;border-left:2px solid #7c3aed;padding:8px 10px;border-radius:4px;font-size:13px;color:#4c1d95;margin-bottom:6px">'+s+'</div>';}).join('')+'</div>';
+
+  // Show modal
+  var modal = document.getElementById('assess-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'assess-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto';
+    modal.onclick = function(e){if(e.target===modal)modal.remove();};
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = '<div style="background:#fff;border-radius:12px;width:680px;max-width:100%;padding:28px;position:relative">' +
+    '<button onclick="document.getElementById(\'assess-modal\').remove()" style="position:absolute;top:16px;right:16px;background:#f7f8fc;border:1px solid #e2e5f0;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">&#10005; Close</button>' +
+    '<div style="background:#0f1117;color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;display:inline-flex;margin-bottom:12px">Assessment</div>' +
+    (a.verified?'<span style="background:#d1fae5;color:#065f46;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;margin-left:8px">&#10003; Verified</span>':'') +
+    '<h2 style="font-size:24px;font-weight:800;margin:10px 0 4px">'+a.title+'</h2>' +
+    '<div style="background:#f3f0ff;color:#7c3aed;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;display:inline-flex;margin-bottom:16px">'+a.bestFor+'</div>' +
+    '<div style="border-top:1px solid #e2e5f0;padding-top:16px">'+sections+'</div>' +
+  '</div>';
+  modal.style.display = 'flex';
 }
 
 // INIT
