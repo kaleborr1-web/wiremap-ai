@@ -2672,20 +2672,33 @@ async function lookupSF() {
     });
     var data = await res.json();
     
-    // Extract text from response - handle both direct text and MCP tool results
+    // Extract text - handle direct text, MCP tool results, and new {text, raw} format
     var text = '';
-    if (data.content) {
+    if (data.text) {
+      text = data.text;
+    } else if (data.content) {
       data.content.forEach(function(block) {
         if (block.type === 'text') text += block.text;
-        if (block.type === 'mcp_tool_result') {
-          var content = block.content;
-          if (Array.isArray(content)) content.forEach(function(c) { if (c.text) text += c.text; });
-          else if (typeof content === 'string') text += content;
+        if (block.type === 'mcp_tool_result' || block.type === 'tool_result') {
+          var bc = block.content;
+          if (Array.isArray(bc)) bc.forEach(function(c) { if (c.text) text += c.text; });
+          else if (typeof bc === 'string') text += bc;
         }
       });
     }
 
-    sfBriefing = text || 'No data returned from Salesforce.';
+    // Try all response formats
+    if (!text && data.raw && data.raw.content) {
+      data.raw.content.forEach(function(block) {
+        if (block.type === 'text') text += block.text + '\n';
+        if (block.content) {
+          var c = block.content;
+          if (Array.isArray(c)) c.forEach(function(x){ if(x.text) text += x.text + '\n'; });
+          else if (typeof c === 'string') text += c + '\n';
+        }
+      });
+    }
+    sfBriefing = (text || 'Account "' + sfAccountName + '" not found in Salesforce. Try a shorter name.').trim();
     
     if (resultEl) {
       // Format result nicely
