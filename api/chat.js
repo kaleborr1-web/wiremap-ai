@@ -4,55 +4,105 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { system, messages, stream, useSalesforce, sfAccountName } = req.body;
+  try {
+    const body = req.body;
+    const { useSalesforce, sfAccountName } = body;
 
-  // Build MCP servers array - include SC CRM if Salesforce lookup requested
-  const mcpServers = useSalesforce ? [{
-    type: 'url',
-    url: 'https://api.salesforce.com/platform/mcp/v1/sandbox/custom/sccrmmcptest',
-    name: 'sc-crm'
-  }] : undefined;
+    // Build request to Anthropic
+    const anthropicBody = {
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2000,
+      stream: !useSalesforce && body.stream !== false
+    };
 
-  // Build system prompt - augment with SF lookup instruction if needed
-  let systemPrompt = system || '';
-  if (useSalesforce && sfAccountName) {
-    systemPrompt = `You are a Salesforce lookup assistant for Softchoice sales reps. 
-Search for the account "${sfAccountName}" in Salesforce CRM.
+    // System prompt
+    if (useSalesforce && sfAccountName) {
+      anthropicBody.system = `You are a Salesforce lookup assistant for Softchoice sales reps.
+Use the available Salesforce CRM tools to search for the account named "${sfAccountName}".
+Search by account name. If exact match fails try partial.
 Return a structured pre-call briefing with:
-- Account name and industry
-- Current products/solutions they have with Softchoice
-- Open opportunities (name, stage, close date, value)
-- Recent activity (last 3 interactions)
-- Key contacts
-- Renewal dates if visible
-- Any signals or notes relevant to a sales call
+## ACCOUNT
+Name, industry, location, account owner
 
-Format as a clean briefing a rep can scan in 30 seconds before a call.
-If the account is not found, say so clearly and suggest similar account names.`;
-  }
+## PRODUCTS & SOLUTIONS
+What they currently have with Softchoice
 
-  const body = {
-    model: 'claude-sonnet-4-6',
-    max_tokens: 2000,
-    stream: stream !== false,
-    system: systemPrompt,
-    messages: messages || [{ role: 'user', content: `Look up account: ${sfAccountName}` }]
-  };
+## OPEN OPPORTUNITIES
+Name, stage, close date, value
 
-  if (mcpServers) body.mcp_servers = mcpServers;
+## RECENT ACTIVITY
+Last 3 interactions
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
+## KEY CONTACTS
+Name and title
+
+## RENEWAL DATES
+Any upcoming renewals
+
+## SIGNALS
+Anything relevant for a sales call
+
+Keep it scannable. If not found say: Account not found: ${sfAccountName}`;
+      anthropicBody.messages = [{ role: 'user', content: `Look up Salesforce account: ${sfAccountName}` }];
+      anthropicBody.stream = false;
+    } else {
+      anthropicBody.system = body.system || '';
+      anthropicBody.messages = body.messages || [];
+    }
+
+    // Add MCP for Salesforce
+    if (useSalesforce) {
+      anthropicBody.mcp_servers = [{
+        type: 'url',
+        url: 'https://api.salesforce.com/platform/mcp/v1/sandbox/custom/sccrmmcptest',
+        name: 'sc-crm'
+      }];
+    }
+
+    const headers = {
       'Content-Type': 'application/json',
       'anthropic-version': '2023-06-01',
-      'anthropic-beta': 'mcp-client-2025-04-04',
       'x-api-key': process.env.ANTHROPIC_API_KEY
-    },
-    body: JSON.stringify(body)
-  });
+    };
+    if (useSalesforce) {
+      headers['anthropic-beta'] = 'mcp-client-2025-04-04';
+    }
 
-  if (stream !== false) {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(anthropicBody)
+    });
+
+    // Salesforce: return full JSON so frontend can parse
+    if (useSalesforce) {
+      const data = await response.json();
+
+      // Extract all text content
+      let text = '';
+      if (data.content && Array.isArray(data.content)) {
+        data.content.forEach(block => {
+          if (block.type === 'text') text += block.text + '\n';
+          if (block.type === 'tool_result' || block.type === 'mcp_tool_result') {
+            const c = block.content;
+            if (Array.isArray(c)) c.forEach(x => { if (x.text) text += x.text + '\n'; });
+            else if (typeof c === 'string') text += c + '\n';
+          }
+        });
+      }
+
+      // If still no text, stringify content for debugging
+      if (!text && data.content) {
+        text = 'DEBUG - Raw response: ' + JSON.stringify(data.content).slice(0, 500);
+      }
+      if (!text && data.error) {
+        text = 'Salesforce error: ' + (data.error.message || JSON.stringify(data.error));
+      }
+
+      return res.status(200).json({ text: text.trim(), stop_reason: data.stop_reason });
+    }
+
+    // Regular streaming coaching calls
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     const reader = response.body.getReader();
@@ -63,8 +113,12 @@ If the account is not found, say so clearly and suggest similar account names.`;
       res.write(decoder.decode(value));
     }
     res.end();
-  } else {
-    const data = await response.json();
-    res.status(response.status).json(data);
+
+  } catch (err) {
+    console.error('WireMap API error:', err);
+    return res.status(500).json({ 
+      text: 'Server error: ' + err.message,
+      error: err.message 
+    });
   }
 }
