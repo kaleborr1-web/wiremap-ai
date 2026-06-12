@@ -274,6 +274,59 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
 .modal input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--rs);font-size:14px;font-family:inherit;margin-bottom:14px}
 .modal input:focus{outline:none;border-color:#6c47ff}
 .mbtns{display:flex;gap:8px;justify-content:flex-end}
+
+.tour-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
+.tour-modal{background:#fff;border-radius:16px;width:680px;max-width:100%;max-height:90vh;overflow-y:auto;position:relative}
+.tour-close{position:absolute;top:14px;right:14px;background:#f7f8fc;border:1px solid #e2e5f0;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;color:#4a5068}
+.tour-hero{text-align:center;padding:40px 40px 28px;border-bottom:1px solid #e2e5f0}
+.tour-hero-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#6c47ff,#d63384);color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;margin-bottom:16px;letter-spacing:.08em;text-transform:uppercase}
+.tour-hero h1{font-size:32px;font-weight:800;margin-bottom:10px;letter-spacing:-.5px}
+.tour-hero p{font-size:15px;color:#4a5068;max-width:500px;margin:0 auto;line-height:1.6}
+.tour-cards{padding:28px 32px}
+.tour-label{font-size:11px;font-weight:700;color:#8b92a8;letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-bottom:16px}
+.tour-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.tour-card{background:#fff;border:1px solid #e2e5f0;border-radius:12px;padding:16px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:border-color .15s}
+.tour-card:hover{border-color:#6c47ff}
+.tour-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.tour-card h3{font-size:14px;font-weight:700;margin-bottom:4px}
+.tour-card p{font-size:12px;color:#4a5068;line-height:1.5;margin-bottom:8px}
+.tour-card-link{font-size:12px;font-weight:600;color:#6c47ff}
+.tour-footer{background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tour-footer-text{font-size:13px;color:#0369a1}
+.tour-footer-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tour-footer-chip{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid #bae6fd;background:#fff;color:#0369a1}
+.tour-actions{padding:20px 32px;border-top:1px solid #e2e5f0;display:flex;align-items:center;justify-content:center;gap:12px}
+
+.tour-spotlight{position:fixed;inset:0;z-index:3000;pointer-events:none}
+.tour-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2999}
+.tour-tooltip{position:fixed;background:#fff;border-radius:14px;padding:20px 22px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,.2);z-index:3001;pointer-events:all}
+.tour-tooltip-badge{font-size:10px;font-weight:700;color:#6c47ff;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.tour-tooltip h3{font-size:16px;font-weight:800;margin-bottom:6px}
+.tour-tooltip p{font-size:13px;color:#4a5068;line-height:1.6;margin-bottom:14px}
+.tour-tooltip-footer{display:flex;align-items:center;justify-content:space-between}
+.tour-progress{font-size:11px;color:#8b92a8}
+.tour-dots{display:flex;gap:4px}
+.tour-dot{width:6px;height:6px;border-radius:50%;background:#e2e5f0}
+.tour-dot.active{background:#6c47ff}
+.tour-next{background:linear-gradient(135deg,#6c47ff,#d63384);color:#fff;border:none;padding:7px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer}
+.tour-skip{background:none;border:none;color:#8b92a8;font-size:12px;cursor:pointer;padding:7px 0}
+.tour-highlight{position:fixed;border-radius:10px;box-shadow:0 0 0 4px #6c47ff,0 0 0 8px rgba(108,71,255,.2);z-index:3000;pointer-events:none;transition:all .3s ease}
+
+.sf-panel{background:#fff;border:1px solid #e2e5f0;border-radius:12px;padding:16px;margin-bottom:16px}
+.sf-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.sf-logo{width:28px;height:28px;background:#00a1e0;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:900;flex-shrink:0}
+.sf-title{font-size:13px;font-weight:700;color:#0f1117}
+.sf-sub{font-size:11px;color:#8b92a8}
+.sf-input-row{display:flex;gap:8px;margin-bottom:10px}
+.sf-input{flex:1;padding:8px 12px;border:1px solid #e2e5f0;border-radius:8px;font-size:13px;font-family:inherit;background:#f7f8fc}
+.sf-btn{background:#00a1e0;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.sf-btn:disabled{opacity:.5;cursor:not-allowed}
+.sf-result{font-size:13px;line-height:1.6;color:#0f1117;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:12px;max-height:300px;overflow-y:auto}
+.sf-result-empty{font-size:13px;color:#8b92a8;font-style:italic;text-align:center;padding:16px 0}
+.sf-thinking{display:flex;align-items:center;gap:8px;color:#8b92a8;font-size:13px}
+.sf-badge{background:#e0f2fe;color:#0369a1;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px}
+.sf-log-btn{background:#f0fdf4;border:1px solid #86efac;color:#16a34a;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
+.sf-log-btn:hover{background:#dcfce7}
 </style>
 </head>
 <body>
@@ -292,7 +345,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
   </div>
   <div class="nav-right">
     <div class="tpill" id="tpill"><div class="tdot"></div><span id="tdisp">00:00</span></div>
-    <button class="btn-new">&#10022; What's New</button>
+    <button class="btn-new" onclick="document.getElementById('welcome-modal').style.display='flex'">&#10022; What's New</button> <button style="background:none;border:1px solid #e2e5f0;color:#4a5068;padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer" onclick="startTour()">&#9654; Take the tour</button>
   </div>
 </nav>
 
@@ -328,7 +381,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
   </div>
   <div class="map-layout">
     <div class="map-canvas">
-      <svg id="msvg" viewBox="0 0 620 510" style="width:100%;max-height:calc(100vh - 220px);height:auto">
+      <svg id="msvg" viewBox="0 80 700 450" style="width:100%;height:auto">
         <g id="wg"></g><g id="ng"></g>
       </svg>
       <div class="map-hint">Tap a station to open it. Hover to highlight connections.</div>
@@ -418,7 +471,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
     </div>
     <div class="llayout">
       <div class="cmain">
-        <div class="cscard"><div class="cstop"><span class="cslbl">CURRENT STATION</span><span class="csbdg" id="cs-cat">HERO PARTNER</span></div><div class="cstit" id="cs-tit">Microsoft</div><div class="csdsc" id="cs-dsc"></div></div>
+        <div id="sf-panel-mount"></div><div class="cscard"><div class="cstop"><span class="cslbl">CURRENT STATION</span><span class="csbdg" id="cs-cat">HERO PARTNER</span></div><div class="cstit" id="cs-tit">Microsoft</div><div class="csdsc" id="cs-dsc"></div></div>
         <div id="lview"><div class="lqs" id="lqs"></div></div>
         <div id="gview" class="gview">
           <div class="ocard" id="gopener"></div>
@@ -515,34 +568,58 @@ var CC={
   'Licensing':'#f59e0b','Identity & Compliance':'#ec4899','Collaboration':'#0ea5e9'
 };
 var MP={
-  lifecycle:{x:75,y:430},networking:{x:75,y:330},datacenter:{x:130,y:230},
-  cisco:{x:195,y:275},storage:{x:210,y:165},backup:{x:295,y:215},
-  disasterrecovery:{x:265,y:295},ucaas:{x:285,y:395},cybersecurity:{x:345,y:240},
-  cloud:{x:355,y:170},microsoft:{x:445,y:165},endusercomputing:{x:385,y:360},
-  endusersecurity:{x:460,y:260},identity:{x:520,y:330},dlp:{x:535,y:250},
-  licensing:{x:565,y:170},compliance:{x:565,y:395}
+  lifecycle:{x:175,y:410},networking:{x:175,y:325},datacenter:{x:235,y:235},
+  cisco:{x:235,y:308},storage:{x:310,y:168},backup:{x:370,y:218},
+  disasterrecovery:{x:318,y:308},ucaas:{x:342,y:388},cybersecurity:{x:415,y:232},
+  cloud:{x:398,y:168},microsoft:{x:490,y:168},endusercomputing:{x:448,y:342},
+  endusersecurity:{x:488,y:262},identity:{x:535,y:325},dlp:{x:565,y:218},
+  licensing:{x:565,y:168},compliance:{x:565,y:400}
 };
 var WR=[
-  ['datacenter','storage','Infrastructure',true],['datacenter','networking','Infrastructure',true],
-  ['datacenter','cisco','Infrastructure',true],['storage','backup','Infrastructure',true],
-  ['storage','microsoft','Infrastructure',false],['networking','lifecycle','Infrastructure',true],
-  ['networking','cisco','Infrastructure',true],['cisco','backup','Infrastructure',true],
-  ['cisco','cybersecurity','Infrastructure',true],['cisco','ucaas','Infrastructure',false],
-  ['backup','disasterrecovery','Data Protection',true],['backup','cybersecurity','Data Protection',true],
-  ['backup','cloud','Data Protection',false],['disasterrecovery','cloud','Data Protection',false],
+  ['datacenter','storage','Infrastructure',true],
+  ['datacenter','networking','Infrastructure',true],
+  ['datacenter','cisco','Infrastructure',true],
+  ['datacenter','disasterrecovery','Infrastructure',true],
+  ['storage','backup','Infrastructure',true],
+  ['storage','microsoft','Infrastructure',false],
+  ['storage','cloud','Infrastructure',false],
+  ['networking','lifecycle','Infrastructure',true],
+  ['networking','cisco','Infrastructure',true],
+  ['networking','ucaas','Infrastructure',false],
+  ['cisco','backup','Infrastructure',true],
+  ['cisco','disasterrecovery','Infrastructure',true],
+  ['cisco','ucaas','Infrastructure',false],
+  ['backup','disasterrecovery','Data Protection',true],
+  ['backup','cybersecurity','Data Protection',true],
+  ['backup','cloud','Data Protection',false],
+  ['backup','endusersecurity','Data Protection',false],
   ['disasterrecovery','storage','Data Protection',false],
-  ['cybersecurity','endusersecurity','Cybersecurity',true],['cybersecurity','dlp','Cybersecurity',true],
-  ['cybersecurity','identity','Cybersecurity',true],['cybersecurity','compliance','Cybersecurity',true],
-  ['cybersecurity','microsoft','Cybersecurity',false],['cybersecurity','cloud','Cybersecurity',false],
-  ['endusersecurity','dlp','Security',true],['endusersecurity','identity','Security',true],
+  ['disasterrecovery','networking','Data Protection',false],
+  ['disasterrecovery','endusercomputing','Data Protection',false],
+  ['disasterrecovery','cloud','Data Protection',false],
+  ['cybersecurity','endusersecurity','Cybersecurity',true],
+  ['cybersecurity','dlp','Cybersecurity',true],
+  ['cybersecurity','identity','Cybersecurity',true],
+  ['cybersecurity','compliance','Cybersecurity',true],
+  ['cybersecurity','microsoft','Cybersecurity',false],
+  ['cybersecurity','cloud','Cybersecurity',false],
+  ['cybersecurity','cisco','Cybersecurity',false],
+  ['endusersecurity','dlp','Security',true],
+  ['endusersecurity','identity','Security',true],
+  ['endusersecurity','endusercomputing','Security',true],
   ['endusersecurity','microsoft','Security',false],
-  ['identity','compliance','Identity & Compliance',true],['identity','dlp','Identity & Compliance',true],
+  ['identity','compliance','Identity & Compliance',true],
+  ['identity','dlp','Identity & Compliance',true],
   ['identity','microsoft','Identity & Compliance',false],
-  ['cloud','microsoft','Cloud & Productivity',true],['cloud','endusercomputing','Cloud & Productivity',true],
-  ['cloud','licensing','Cloud & Productivity',false],['endusercomputing','endusersecurity','Cloud & Productivity',false],
-  ['microsoft','licensing','Licensing',true],['licensing','compliance','Licensing',false],
-  ['ucaas','microsoft','Collaboration',true],['ucaas','cisco','Collaboration',true],
-  ['ucaas','endusercomputing','Collaboration',false]
+  ['compliance','licensing','Identity & Compliance',false],
+  ['cloud','microsoft','Cloud & Productivity',true],
+  ['cloud','endusercomputing','Cloud & Productivity',true],
+  ['cloud','licensing','Cloud & Productivity',false],
+  ['endusercomputing','identity','Cloud & Productivity',false],
+  ['endusercomputing','ucaas','Cloud & Productivity',false],
+  ['microsoft','licensing','Licensing',true],
+  ['ucaas','microsoft','Collaboration',true],
+  ['ucaas','cloud','Collaboration',false]
 ];
 // STATIONS DATA
 var ST = {
@@ -811,7 +888,7 @@ function renderNodes(){
   Object.keys(MP).forEach(function(id){
     var pos=MP[id],s=ST[id];if(!s)return;
     var color=CC[s.category]||'#888';
-    var r=(id==='microsoft'||id==='cisco')?20:14;
+    var r=(id==='microsoft'||id==='cisco')?16:11;
     var grp=document.createElementNS('http://www.w3.org/2000/svg','g');
     grp.setAttribute('class','snode');
     grp.setAttribute('transform','translate('+pos.x+','+pos.y+')');
@@ -820,13 +897,13 @@ function renderNodes(){
     c.setAttribute('fill',color);c.setAttribute('stroke','white');c.setAttribute('stroke-width','2.5');
     c.setAttribute('class','scirc');c.setAttribute('id','c-'+id);
     var tx=document.createElementNS('http://www.w3.org/2000/svg','text');
-    var lx=0,ly=r+13,anc='middle';
-    if(pos.x<100){lx=-(r+4);ly=0;anc='end';}
-    else if(pos.x>520){lx=r+4;ly=0;anc='start';}
+    var lx=0,ly=r+11,anc='middle';
+    if(pos.x<120){lx=-(r+4);ly=0;anc='end';}
+    else if(pos.x>460){lx=r+4;ly=0;anc='start';}
     tx.setAttribute('x',String(lx));tx.setAttribute('y',String(ly));
     tx.setAttribute('dy',anc!=='middle'?'0.35em':'0');
     tx.setAttribute('text-anchor',anc);
-    tx.setAttribute('font-size','10.5');tx.setAttribute('font-weight','600');
+    tx.setAttribute('font-size','9.5');tx.setAttribute('font-weight','600');
     tx.setAttribute('fill','#3a3f52');tx.setAttribute('stroke','white');
     tx.setAttribute('stroke-width','3');tx.setAttribute('paint-order','stroke');
     tx.setAttribute('font-family','-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif');
@@ -888,6 +965,8 @@ function showDisco(){
   document.getElementById('gtm-pg').classList.remove('on');
   document.getElementById('gtm-call').classList.remove('on');
   document.getElementById('disco').style.display='block';
+  var mount = document.getElementById('sf-panel-mount');
+  if (mount && !mount.innerHTML) mount.innerHTML = renderSFPanel();
 }
 function showGTMPicker(){
   document.getElementById('gtm-pg').classList.add('on');
@@ -1006,6 +1085,7 @@ function renderGTMCall(){
   var scr=curAngle?(gtmSty==='disarm'?curAngle.disarm:curAngle.direct):(op?(gtmSty==='disarm'?op.disarm:op.direct):'');
   var sthint=gtmSty==='disarm'?'Safer, more permission-based. Best for newer reps or cautious prospects.':'Confident, peer-energy, no apology.';
   el.innerHTML=
+    renderSFPanel() +
     '<div class="gbar"><div style="display:flex;align-items:center;gap:8px;color:#4a5068"><span class="gbar-lbl">&#127919; The goal:</span> book a 30-min discovery call.</div><div style="font-size:12px;color:#8b92a8">Signal: <strong>Building rapport</strong></div></div>'+
     '<div class="pitch" style="background:'+op.grad+'">'+
       '<div class="pitch-in">'+
@@ -1207,6 +1287,11 @@ function getGTMSys(){
     '6. Reference the specific opener, angle, and style -- never generic.',
     '7. Max 3 sentences. Rep is on a live call.'
   ];
+  if (window.sfContext) {
+    parts.splice(4, 0, '');
+    parts.splice(4, 0, 'SALESFORCE ACCOUNT BRIEFING (pulled before this call):');
+    parts.splice(4, 0, window.sfContext);
+  }
   return parts.filter(function(p){return p!==null&&p!==undefined;}).join('\n');
 }
 
@@ -2379,12 +2464,366 @@ async function streamAI(sys, txt, respId, histId, callback) {
   }
 }
 
+
+function closeWelcome() {
+  var m = document.getElementById('welcome-modal');
+  if (m) m.style.display = 'none';
+  try { localStorage.setItem('wm_welcomed', '1'); } catch(e) {}
+}
+function checkWelcome() {
+  try {
+    if (!localStorage.getItem('wm_welcomed')) {
+      var m = document.getElementById('welcome-modal');
+      if (m) m.style.display = 'flex';
+    }
+  } catch(e) {}
+}
+
+
+var TOUR_STEPS = [
+  {
+    title: 'The conversation map',
+    body: 'Every topic your prospect cares about is a station. The wires show you the natural path the conversation can take — follow the wire, never lose the thread.',
+    target: 'page-map',
+    position: 'center',
+    action: function() { showPage('map'); }
+  },
+  {
+    title: 'Click any station',
+    body: 'Tap a node to open it. Discovery questions, vendors by partner tier, and where the conversation naturally pivots next.',
+    target: 'c-microsoft',
+    position: 'left',
+    action: function() { showPage('map'); openSt('microsoft'); }
+  },
+  {
+    title: 'Live Discovery Call',
+    body: 'Hit Live Discovery Call and you are in the call. Switch between List view (all questions) and Guided view (beat by beat). The trail at the top tracks every station you have visited.',
+    target: 'page-live',
+    position: 'center',
+    action: function() { startLiveCall('discovery'); }
+  },
+  {
+    title: 'AI live coaching',
+    body: 'Tell the AI what just happened and it coaches you in real time — using CCS, Challenger, Consultative, and Carnegie. Hit a quick-response button or type what you heard.',
+    target: 'aisnd',
+    position: 'top',
+    action: function() { startLiveCall('discovery'); }
+  },
+  {
+    title: 'GTM Cold Call mode',
+    body: 'Pick your opener angle, choose Disarm-First or Direct style, and get a 15-second pitch tailored to that angle. When they respond, tap the closest match and Claude tells you what to say.',
+    target: 'gtm-pg',
+    position: 'center',
+    action: function() { startLiveCall('gtm'); }
+  },
+  {
+    title: 'The Playbook',
+    body: 'Every methodology behind the scripts — CCS, Challenger, Modern Consultative, Carnegie, and Minto. Do This / Not This for each one. Your 90-second refresher between calls.',
+    target: 'tab-playbook',
+    position: 'bottom',
+    action: function() { showPage('playbook'); }
+  },
+  {
+    title: 'Resources',
+    body: 'Every assessment, event, and win wire — searchable and filterable. Click any card to see who it is for, discovery questions, objection responses, and why Softchoice. Real content, mid-call.',
+    target: 'tab-resources',
+    position: 'bottom',
+    action: function() { showPage('resources'); }
+  },
+  {
+    title: 'Ask WireMap',
+    body: 'The floating AI assistant knows everything in the app. Ask which assessments are fully funded, Cisco EA gotchas, or upcoming events for a Microsoft prospect.',
+    target: 'chatbot-btn',
+    position: 'top',
+    action: function() { showPage('map'); }
+  }
+];
+
+var tourStep = 0;
+var tourActive = false;
+
+function startTour() {
+  closeWelcome();
+  tourStep = 0;
+  tourActive = true;
+  renderTourStep();
+}
+
+function renderTourStep() {
+  cleanTour();
+  if (tourStep >= TOUR_STEPS.length) { endTour(); return; }
+  var step = TOUR_STEPS[tourStep];
+  if (step.action) step.action();
+
+  setTimeout(function() {
+    var backdrop = document.createElement('div');
+    backdrop.className = 'tour-backdrop';
+    backdrop.id = 'tour-backdrop';
+    document.body.appendChild(backdrop);
+
+    var highlight = null;
+    var targetEl = document.getElementById(step.target);
+    if (targetEl && step.position !== 'center') {
+      var rect = targetEl.getBoundingClientRect();
+      highlight = document.createElement('div');
+      highlight.className = 'tour-highlight';
+      highlight.id = 'tour-highlight';
+      highlight.style.cssText = 'top:'+(rect.top-6)+'px;left:'+(rect.left-6)+'px;width:'+(rect.width+12)+'px;height:'+(rect.height+12)+'px';
+      document.body.appendChild(highlight);
+    }
+
+    var tooltip = document.createElement('div');
+    tooltip.className = 'tour-tooltip';
+    tooltip.id = 'tour-tooltip';
+
+    var dots = TOUR_STEPS.map(function(s,i) {
+      return '<div class="tour-dot'+(i===tourStep?' active':'')+'"></div>';
+    }).join('');
+
+    var isLast = tourStep === TOUR_STEPS.length - 1;
+
+    tooltip.innerHTML =
+      '<div class="tour-tooltip-badge">Step '+(tourStep+1)+' of '+TOUR_STEPS.length+'</div>' +
+      '<h3>'+step.title+'</h3>' +
+      '<p>'+step.body+'</p>' +
+      '<div class="tour-tooltip-footer">' +
+        '<div><div class="tour-dots">'+dots+'</div></div>' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<button class="tour-skip" onclick="endTour()">Skip tour</button>' +
+          '<button class="tour-next" onclick="nextTourStep()">'+(isLast?'Finish ✓':'Next &rarr;')+'</button>' +
+        '</div>' +
+      '</div>';
+
+    // Position tooltip
+    var tw = 320, th = 200;
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var tx, ty;
+
+    if (step.position === 'center' || !targetEl) {
+      tx = (vw - tw) / 2;
+      ty = (vh - th) / 2;
+    } else {
+      var rect = targetEl.getBoundingClientRect();
+      if (step.position === 'bottom') {
+        tx = Math.min(rect.left, vw - tw - 20);
+        ty = rect.bottom + 12;
+      } else if (step.position === 'top') {
+        tx = Math.min(rect.left, vw - tw - 20);
+        ty = rect.top - th - 12;
+      } else if (step.position === 'left') {
+        tx = rect.left - tw - 16;
+        ty = rect.top + (rect.height/2) - (th/2);
+      } else {
+        tx = rect.right + 16;
+        ty = rect.top + (rect.height/2) - (th/2);
+      }
+      tx = Math.max(16, Math.min(tx, vw - tw - 16));
+      ty = Math.max(16, Math.min(ty, vh - th - 16));
+    }
+
+    tooltip.style.left = tx + 'px';
+    tooltip.style.top = ty + 'px';
+    document.body.appendChild(tooltip);
+  }, 400);
+}
+
+function nextTourStep() {
+  tourStep++;
+  renderTourStep();
+}
+
+function cleanTour() {
+  ['tour-backdrop','tour-highlight','tour-tooltip'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.remove();
+  });
+}
+
+function endTour() {
+  cleanTour();
+  tourActive = false;
+  showPage('map');
+}
+
+
+var sfBriefing = null;
+var sfAccountName = '';
+
+async function lookupSF() {
+  var inp = document.getElementById('sf-input');
+  var name = inp ? inp.value.trim() : '';
+  if (!name) return;
+  sfAccountName = name;
+
+  var resultEl = document.getElementById('sf-result');
+  var btn = document.getElementById('sf-lookup-btn');
+  if (resultEl) resultEl.innerHTML = '<div class="sf-thinking"><span>Looking up in Salesforce</span><div class="dots"><span></span><span></span><span></span></div></div>';
+  if (btn) btn.disabled = true;
+
+  try {
+    var res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        useSalesforce: true,
+        sfAccountName: name,
+        stream: false
+      })
+    });
+    var data = await res.json();
+    
+    // Extract text from response - handle both direct text and MCP tool results
+    var text = '';
+    if (data.content) {
+      data.content.forEach(function(block) {
+        if (block.type === 'text') text += block.text;
+        if (block.type === 'mcp_tool_result') {
+          var content = block.content;
+          if (Array.isArray(content)) content.forEach(function(c) { if (c.text) text += c.text; });
+          else if (typeof content === 'string') text += content;
+        }
+      });
+    }
+
+    sfBriefing = text || 'No data returned from Salesforce.';
+    
+    if (resultEl) {
+      // Format result nicely
+      var lines = sfBriefing.split('\n');
+      var html = lines.map(function(line) {
+        if (line.indexOf('## ') === 0) return '<div style="font-size:12px;font-weight:700;color:#0369a1;letter-spacing:.08em;text-transform:uppercase;margin:10px 0 4px">'+line.slice(3)+'</div>';
+        if (line.indexOf('- ') === 0) return '<div style="display:flex;gap:6px;margin-bottom:3px"><span style="color:#0369a1">•</span><span>'+line.slice(2)+'</span></div>';
+        if (line === '') return '<br>';
+        return '<div style="margin-bottom:2px">'+line.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')+'</div>';
+      }).join('');
+      resultEl.innerHTML = html + '<button class="sf-log-btn" onclick="logToSF()">&#128203; Add to call notes</button>';
+    }
+
+    // Inject into AI coaching context
+    window.sfContext = sfBriefing;
+
+  } catch(e) {
+    if (resultEl) resultEl.innerHTML = '<div style="color:#e63946;font-size:13px">Could not reach Salesforce. Check connection and try again.</div>';
+  }
+  if (btn) btn.disabled = false;
+}
+
+function logToSF() {
+  if (!sfBriefing) return;
+  var cn = document.getElementById('cnotes');
+  if (cn) {
+    cn.value = (cn.value ? cn.value + '\n\n' : '') + '=== SALESFORCE BRIEFING: ' + sfAccountName + ' ===\n' + sfBriefing.replace(/<[^>]*>/g,'');
+    cn.scrollTop = cn.scrollHeight;
+  }
+  var btn = document.querySelector('.sf-log-btn');
+  if (btn) { btn.textContent = '✓ Added to call notes'; btn.style.background = '#dcfce7'; }
+}
+
+function renderSFPanel() {
+  return '<div class="sf-panel">' +
+    '<div class="sf-header">' +
+      '<div class="sf-logo">SF</div>' +
+      '<div><div class="sf-title">Pre-Call Account Lookup <span class="sf-badge">Salesforce</span></div>' +
+      '<div class="sf-sub">Pull account data before you dial</div></div>' +
+    '</div>' +
+    '<div class="sf-input-row">' +
+      '<input class="sf-input" id="sf-input" type="text" placeholder="Account name e.g. Newmark Homes..." ' +
+        'onkeydown="if(event.key===\'Enter\')lookupSF()" />' +
+      '<button class="sf-btn" id="sf-lookup-btn" onclick="lookupSF()">&#128269; Look up</button>' +
+    '</div>' +
+    '<div id="sf-result"><div class="sf-result-empty">Type an account name and hit Look up to pull their Salesforce record before the call.</div></div>' +
+  '</div>';
+}
+
 // INIT
 renderMap();
 renderLibrary();
 initChatbot();
+checkWelcome();
 
 
 </script>
+
+<div class="tour-overlay" id="welcome-modal">
+  <div class="tour-modal">
+    <button class="tour-close" onclick="closeWelcome()">&#10005;</button>
+    <div class="tour-hero">
+      <div class="tour-hero-badge">&#10022; WELCOME TO WIREMAP AI</div>
+      <h1>Follow the wire.</h1>
+      <p>When the conversation pivots, you don't have to. WireMap AI is your live conversation roadmap — cold-call openers, discovery beats, vendor positioning, AI coaching, and call recaps, all wired together.</p>
+    </div>
+    <div class="tour-cards">
+      <div class="tour-label">WHEN YOU'D REACH FOR WIREMAP AI</div>
+      <div class="tour-grid">
+        <div class="tour-card" onclick="closeWelcome();startLiveCall('gtm')">
+          <div class="tour-card-icon" style="background:linear-gradient(135deg,#6c47ff,#d63384)">&#128227;</div>
+          <div>
+            <h3>You're about to cold call</h3>
+            <p>Pick an opener angle, get a Disarm or Direct pitch, and branch live based on how the prospect reacts.</p>
+            <div class="tour-card-link">Start a cold call &rarr;</div>
+          </div>
+        </div>
+        <div class="tour-card" onclick="closeWelcome();startLiveCall('discovery')">
+          <div class="tour-card-icon" style="background:linear-gradient(135deg,#2dc653,#0ea5e9)">&#128222;</div>
+          <div>
+            <h3>You have a discovery call booked</h3>
+            <p>Station-led talking points, current-era discovery questions, vendors to position — all wired together.</p>
+            <div class="tour-card-link">Run a discovery call &rarr;</div>
+          </div>
+        </div>
+        <div class="tour-card" onclick="closeWelcome();showPage('map')">
+          <div class="tour-card-icon" style="background:linear-gradient(135deg,#2176ff,#0ea5e9)">&#128506;</div>
+          <div>
+            <h3>You want to see how topics connect</h3>
+            <p>Tap any station to see discovery questions, vendors to position, and the next natural place the conversation can go.</p>
+            <div class="tour-card-link">Browse the map &rarr;</div>
+          </div>
+        </div>
+        <div class="tour-card" onclick="closeWelcome();showPage('resources')">
+          <div class="tour-card-icon" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">&#128196;</div>
+          <div>
+            <h3>You want real Softchoice content</h3>
+            <p>Assessments, Events, and Win Wires — every card breaks down who it's for, discovery questions, outcomes, objections, and why Softchoice.</p>
+            <div class="tour-card-link">Open the Resources tab &rarr;</div>
+          </div>
+        </div>
+        <div class="tour-card" onclick="closeWelcome();setTimeout(function(){toggleChatbot();},300)">
+          <div class="tour-card-icon" style="background:linear-gradient(135deg,#7c3aed,#6c47ff)">&#9889;</div>
+          <div>
+            <h3>You want live, in-call AI in your ear</h3>
+            <p>The AI coach reacts to the station, signals, and notes from the live call. Suggests next moves, handles objections, drafts the recap.</p>
+            <div class="tour-card-link">Open Ask WireMap &rarr;</div>
+          </div>
+        </div>
+        <div class="tour-card" onclick="closeWelcome();showPage('journal')">
+          <div class="tour-card-icon" style="background:linear-gradient(135deg,#059669,#2dc653)">&#128203;</div>
+          <div>
+            <h3>You need to recap a past call</h3>
+            <p>Every call you take in WireMap AI is saved with the topics, signals, and notes — copy a clean recap into email or CRM.</p>
+            <div class="tour-card-link">Review past calls &rarr;</div>
+          </div>
+        </div>
+      </div>
+      <div class="tour-footer">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#0369a1;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">&#128196; INSIDE EVERY RESOURCE CARD</div>
+          <div style="font-size:13px;color:#0369a1">Open any Assessment, Event, or Win Wire to see the same sections — so you can grab the exact line you need mid-call.</div>
+          <div class="tour-footer-chips">
+            <span class="tour-footer-chip">Who it's for</span>
+            <span class="tour-footer-chip">Discovery questions</span>
+            <span class="tour-footer-chip">Outcomes</span>
+            <span class="tour-footer-chip">Objections</span>
+            <span class="tour-footer-chip">Why Softchoice</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tour-actions">
+      <button style="background:linear-gradient(135deg,#6c47ff,#d63384);color:#fff;border:none;padding:11px 24px;border-radius:22px;font-size:14px;font-weight:600;cursor:pointer" onclick="startTour()">&#9654; Take the 60-second tour</button>
+      <button style="background:none;border:none;color:#8b92a8;font-size:13px;cursor:pointer" onclick="closeWelcome()">Skip — take me to the map &rarr;</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
