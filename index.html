@@ -482,7 +482,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
           <div class="aiht" id="aiht"></div>
           <div class="aiia">
             <div class="airow">
-              <textarea class="aiinp" id="aiinp" rows="2" placeholder="What just happened? e.g. They said they are happy with their current partner"></textarea>
+              <textarea class="aiinp" id="aiinp" rows="2" placeholder="What just happened? Hit Enter to send..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();askAI();}"></textarea>
               <button class="aisnd" id="aisnd" onclick="askAI()">Coach me &#8594;</button>
             </div>
             <div class="aiqks">
@@ -934,9 +934,9 @@ function openSt(id){
   var col=CC[s.category]||'#888';
   var qs=s.questions.map(function(q,i){return '<div class="dq"><div class="dqn">'+(i+1)+'</div><div class="dqt">'+q+'</div></div>';}).join('');
   var vs=s.vendors.map(function(v){return '<span class="vc vc'+v.t.toLowerCase().charAt(0)+'">'+v.t+' '+v.n+(v.s?' · '+v.s:'')+'</span>';}).join('');
-  var pv=(s.pivots||[]).map(function(pid){var ps=ST[pid];if(!ps)return '';return '<div class="pvi" onclick="openSt(\''+pid+'\')"><div style="display:flex;align-items:center;gap:8px"><div class="pvdot" style="background:'+(CC[ps.category]||'#888')+'"></div>'+ps.label+'</div><span class="pvb">PRIMARY &rarr;</span></div>';}).join('');
+  var pv=(s.pivots||[]).map(function(pid){var ps=ST[pid];if(!ps)return '';return '<div class="pvi" onclick="navToWithContext(\''+pid+'\',\''+id+'\')"><div style="display:flex;align-items:center;gap:8px"><div class="pvdot" style="background:'+(CC[ps.category]||'#888')+'"></div>'+ps.label+'</div><span class="pvb">PRIMARY &rarr;</span></div>';}).join('');
   el.innerHTML='<div class="sp-hdr"><div class="sp-cat" style="background:'+col+'18;color:'+col+'">'+s.category+'</div><div class="sp-title">'+s.label+'</div><div class="sp-desc">'+s.desc+'</div></div><div class="sp-live" onclick="openInLive(\''+id+'\')"><div><div class="sp-live-t">Open in Live Discovery Call</div><div class="sp-live-s">Drop into a call-optimized view of this station</div></div><span style="color:#6c47ff">&rarr;</span></div><div class="sp-sec"><div class="sp-lbl">&#128269; DISCOVERY QUESTIONS</div>'+qs+'</div><div class="sp-sec"><div class="sp-lbl">&#127962; VENDORS TO POSITION</div><div class="vchips">'+vs+'</div><div style="font-size:11px;color:#8b92a8;margin-top:6px">Sorted strongest first -- Softchoice Active Partners.</div></div><div class="sp-sec"><div class="sp-lbl">&rarr; PIVOT TO</div>'+pv+'</div>';
-  if(id==='licensing'){setTimeout(function(){var m=document.createElement('div');var sp=document.getElementById('sp');if(sp){sp.appendChild(m);renderLicensingStation(m);}},100);}
+  if(id==='licensing'){setTimeout(function(){var m=document.createElement('div');var sp=document.getElementById('sp');if(sp){sp.appendChild(m);renderLicensingStation(m);setTimeout(applyLicContext,500);}},150);}
 }
 function openInLive(id){curSt=id;if(!callOn)startTimer();navTo(id);showPage('live');showDisco();}
 
@@ -1021,7 +1021,12 @@ function nextBeat(){var s=ST[curSt];if(s&&beat<(s.beats||[]).length-1){beat++;re
 function prevBeat(){if(beat>0){beat--;renderBeat(ST[curSt],beat);}}
 function renderSB(s){
   var pv=document.getElementById('pvlist');
-  if(pv)pv.innerHTML=(s.pivots||[]).map(function(pid){var ps=ST[pid];if(!ps)return '';return '<button class="pvbtn" onclick="navTo(\''+pid+'\')"><div class="pvbl"><div class="pvdot" style="background:'+(CC[ps.category]||'#888')+'"></div>'+ps.label+'</div><span class="pvtp">PRIMARY</span></button>';}).join('');
+  if(pv)pv.innerHTML=(s.pivots||[]).map(function(pid){var ps=ST[pid];if(!ps)return '';return '<button class="pvbtn" onclick="navToWithContext(\''+pid+'\',curSt)"><div class="pvbl"><div class="pvdot" style="background:'+(CC[ps.category]||'#888')+'"></div>'+(function(){
+          var ctxLabel = getPivotLabel(curSt, pid);
+          var sublabel = ctxLabel ? '<div style="font-size:10px;color:#d97706;margin-top:1px">'+ctxLabel+'</div>' : '';
+          var tag = ctxLabel ? '<span class="pvtp" style="background:#fff8e7;color:#b45309;border:1px solid #f59e0b">&#9728;</span>' : '<span class="pvtp">&#8594;</span>';
+          return ps.label+'</div>'+sublabel+tag+'</button>';
+        })();}).join('');
   var sv=document.getElementById('sbvend');
   if(sv)sv.innerHTML=s.vendors.map(function(v){return '<span class="vc vc'+v.t.toLowerCase().charAt(0)+'">'+v.t+' '+v.n+(v.s?' · '+v.s:'')+'</span>';}).join('');
   var jc=document.getElementById('jchips');
@@ -1112,7 +1117,7 @@ function renderGTMCall(){
       '<div class="aihdr"><div class="aitit"><span class="aibdg">AI</span> Live coaching</div><span style="font-size:11px;color:#8b92a8">Powered by Claude</span></div>'+
       '<div class="aiht" id="aiht-gtm"></div>'+
       '<div class="aiia">'+
-        '<div class="airow"><textarea class="aiinp" id="aiinp-gtm" rows="2" placeholder="What just happened? e.g. They said they already have a partner"></textarea>'+
+        '<div class="airow"><textarea class="aiinp" id="aiinp-gtm" rows="2" placeholder="What just happened? Hit Enter to send..." onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();askGTM();}"></textarea>'+
         '<button class="aisnd" onclick="askGTM()">Coach me &rarr;</button></div>'+
         '<div class="aiqks">'+
           '<button class="aiqk" onclick="qGTM(\'They said they already have a partner\')">Have a partner</button>'+
@@ -2746,6 +2751,110 @@ function renderSFPanel() {
     '</div>' +
     '<div id="sf-result"><div class="sf-result-empty">Type an account name and hit Look up to pull their Salesforce record before the call.</div></div>' +
   '</div>';
+}
+
+
+// ── SMART PIVOT CONTEXT ──────────────────────────────────────────────────────
+var PIVOT_CONTEXT = {
+  microsoft:        {licensing:{tab:'comparison',vendor:'microsoft',label:'Microsoft Suite Explorer'}},
+  cisco:            {licensing:{tab:'comparison',vendor:'cisco',label:'Cisco EA Licensing'}},
+  cloud:            {licensing:{tab:'comparison',vendor:'microsoft',label:'Azure Licensing'}},
+  endusercomputing: {licensing:{tab:'comparison',vendor:'microsoft',label:'Intune & Device Licensing'}},
+  endusersecurity:  {licensing:{tab:'consolidation',vendor:'microsoft',label:'Microsoft Consolidation Map'}},
+  cybersecurity:    {licensing:{tab:'consolidation',vendor:'microsoft',label:'Microsoft Consolidation Map'}},
+  dlp:              {licensing:{tab:'consolidation',vendor:'microsoft',label:'Purview Consolidation'}},
+  identity:         {licensing:{tab:'consolidation',vendor:'microsoft',label:'Entra Consolidation'}},
+  compliance:       {licensing:{tab:'consolidation',vendor:'microsoft',label:'Compliance Licensing'}},
+  backup:           {licensing:{tab:'comparison',vendor:'veeam',label:'Veeam Licensing'}},
+  datacenter:       {licensing:{tab:'server',vendor:null,label:'Server Licensing'}},
+  networking:       {licensing:{tab:'comparison',vendor:'cisco',label:'Cisco Networking Licensing'}},
+  storage:          {licensing:{tab:'server',vendor:null,label:'Server & Storage Licensing'}},
+};
+
+var pendingLicContext = null;
+
+function navToWithContext(toId, fromId) {
+  if (fromId && PIVOT_CONTEXT[fromId] && PIVOT_CONTEXT[fromId][toId]) {
+    pendingLicContext = {from: fromId};
+    var ctx = PIVOT_CONTEXT[fromId][toId];
+    pendingLicContext.tab = ctx.tab;
+    pendingLicContext.vendor = ctx.vendor;
+    pendingLicContext.label = ctx.label;
+  } else {
+    pendingLicContext = null;
+  }
+  navTo(toId);
+}
+
+function applyLicContext() {
+  if (!pendingLicContext) return;
+  var ctx = pendingLicContext;
+  pendingLicContext = null;
+
+  // Retry until switchLicTab is available (renderLicensingStation may not have run yet)
+  var attempts = 0;
+  function tryApply() {
+    attempts++;
+    if (attempts > 20) return; // give up after 2s
+
+    if (!window.switchLicTab || !window.refreshLicensing) {
+      setTimeout(tryApply, 100);
+      return;
+    }
+
+    // Switch tab
+    if (ctx.tab) {
+      window.switchLicTab(ctx.tab);
+    }
+
+    // Open vendor accordion
+    if (ctx.vendor) {
+      setTimeout(function() {
+        if (window.toggleVendor) {
+          window.toggleVendor(ctx.vendor);
+          // Scroll to vendor
+          setTimeout(function() {
+            var el = document.querySelector('[data-vendor="' + ctx.vendor + '"]');
+            if (!el) {
+              // Try finding by onclick content
+              var allBtns = document.querySelectorAll('#sp [onclick]');
+              allBtns.forEach(function(btn) {
+                if (btn.getAttribute('onclick') && btn.getAttribute('onclick').indexOf("'" + ctx.vendor + "'") >= 0) {
+                  btn.scrollIntoView({behavior:'smooth', block:'start'});
+                }
+              });
+            } else {
+              el.scrollIntoView({behavior:'smooth', block:'start'});
+            }
+          }, 400);
+        }
+      }, 200);
+    }
+
+    // Show banner
+    if (ctx.label && ctx.from) {
+      var fromLabel = ST[ctx.from] ? ST[ctx.from].label : ctx.from;
+      var sp = document.getElementById('sp');
+      if (sp) {
+        var old = document.getElementById('lic-ctx-banner');
+        if (old) old.parentNode.removeChild(old);
+        var banner = document.createElement('div');
+        banner.id = 'lic-ctx-banner';
+        banner.style.cssText = 'background:#fff8e7;border:1px solid #f59e0b;border-radius:8px;padding:10px 14px;margin:0 20px 12px;font-size:13px;color:#92400e;display:flex;align-items:center;gap:8px';
+        banner.innerHTML = '<span>&#9728;</span><div><strong>Smart pivot from ' + fromLabel + '</strong> &mdash; ' + ctx.label + '</div>';
+        sp.insertBefore(banner, sp.firstChild);
+        setTimeout(function() { if (banner.parentNode) banner.parentNode.removeChild(banner); }, 5000);
+      }
+    }
+  }
+  tryApply();
+}
+
+function getPivotLabel(fromId, toId) {
+  if (fromId && PIVOT_CONTEXT[fromId] && PIVOT_CONTEXT[fromId][toId]) {
+    return PIVOT_CONTEXT[fromId][toId].label;
+  }
+  return null;
 }
 
 // INIT
