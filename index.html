@@ -275,7 +275,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
 .modal input:focus{outline:none;border-color:#6c47ff}
 .mbtns{display:flex;gap:8px;justify-content:flex-end}
 
-.tour-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
+.tour-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px}
 .tour-modal{background:#fff;border-radius:16px;width:680px;max-width:100%;max-height:90vh;overflow-y:auto;position:relative}
 .tour-close{position:absolute;top:14px;right:14px;background:#f7f8fc;border:1px solid #e2e5f0;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px;color:#4a5068}
 .tour-hero{text-align:center;padding:40px 40px 28px;border-bottom:1px solid #e2e5f0}
@@ -345,7 +345,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
   </div>
   <div class="nav-right">
     <div class="tpill" id="tpill"><div class="tdot"></div><span id="tdisp">00:00</span></div>
-    <button class="btn-new" onclick="document.getElementById('welcome-modal').style.display='flex'">&#10022; What's New</button> <button style="background:none;border:1px solid #e2e5f0;color:#4a5068;padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer" onclick="startTour()">&#9654; Take the tour</button>
+    <button class="btn-new" onclick="openWhatsNew()">&#10022; What's New</button> <button style="background:none;border:1px solid #e2e5f0;color:#4a5068;padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer" onclick="startTour()">&#9654; Take the tour</button>
   </div>
 </nav>
 
@@ -986,6 +986,29 @@ function navTo(id){
   document.getElementById('cs-tit').textContent=s.label;
   document.getElementById('cs-dsc').textContent=s.desc;
   renderTrail();renderList(s);renderGuided(s);renderSB(s);
+  // For licensing: inject Suite Explorer into live call view
+  if(id==='licensing'){
+    var lview=document.getElementById('lview');
+    if(lview){
+      // Check if already rendered
+      var existing=document.getElementById('lic-live-mount');
+      if(!existing){
+        var mount=document.createElement('div');
+        mount.id='lic-live-mount';
+        lview.appendChild(mount);
+      }
+      var mnt=document.getElementById('lic-live-mount');
+      if(mnt){
+        mnt.innerHTML='';
+        renderLicensingStation(mnt);
+        setTimeout(applyLicContext,600);
+      }
+    }
+  } else {
+    // Remove licensing mount when leaving licensing station
+    var old=document.getElementById('lic-live-mount');
+    if(old&&old.parentNode)old.parentNode.removeChild(old);
+  }
 }
 function renderTrail(){
   var d=document.getElementById('trd');if(!d)return;
@@ -2477,11 +2500,18 @@ function closeWelcome() {
 }
 function checkWelcome() {
   try {
-    if (!localStorage.getItem('wm_welcomed')) {
-      var m = document.getElementById('welcome-modal');
-      if (m) m.style.display = 'flex';
+    var seen = localStorage.getItem('wm_welcomed');
+    var m = document.getElementById('welcome-modal');
+    if (!seen && m) {
+      m.style.display = 'flex';
+    } else if (m) {
+      m.style.display = 'none';
     }
-  } catch(e) {}
+  } catch(e) {
+    // If localStorage unavailable, just hide it
+    var m = document.getElementById('welcome-modal');
+    if (m) m.style.display = 'none';
+  }
 }
 
 
@@ -2857,6 +2887,16 @@ function getPivotLabel(fromId, toId) {
   return null;
 }
 
+
+function openWhatsNew() {
+  var m = document.getElementById('whats-new-modal');
+  if (m) m.style.display = 'flex';
+}
+function closeWhatsNew() {
+  var m = document.getElementById('whats-new-modal');
+  if (m) m.style.display = 'none';
+}
+
 // INIT
 renderMap();
 renderLibrary();
@@ -2943,6 +2983,78 @@ checkWelcome();
     <div class="tour-actions">
       <button style="background:linear-gradient(135deg,#6c47ff,#d63384);color:#fff;border:none;padding:11px 24px;border-radius:22px;font-size:14px;font-weight:600;cursor:pointer" onclick="startTour()">&#9654; Take the 60-second tour</button>
       <button style="background:none;border:none;color:#8b92a8;font-size:13px;cursor:pointer" onclick="closeWelcome()">Skip — take me to the map &rarr;</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="whats-new-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto">
+  <div style="background:#fff;border-radius:16px;width:620px;max-width:100%;position:relative;overflow:hidden">
+    <div style="background:linear-gradient(135deg,#6c47ff,#d63384);padding:28px 32px 20px">
+      <button onclick="closeWhatsNew()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:13px">&#10005;</button>
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">&#10022; WHAT'S NEW</div>
+      <h2 style="font-size:26px;font-weight:800;color:#fff;margin-bottom:4px">WireMap AI — Release Notes</h2>
+      <div style="font-size:13px;color:rgba(255,255,255,.7)">Built for Softchoice sales reps</div>
+    </div>
+    <div style="padding:24px 32px">
+
+      <div style="margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="background:#6c47ff;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">LATEST</div>
+          <div style="font-size:14px;font-weight:700">June 2026 — v2.0</div>
+        </div>
+        <div style="display:grid;gap:10px">
+          <div style="background:#f7f8fc;border-radius:10px;padding:14px 16px;display:flex;gap:12px">
+            <div style="font-size:20px">&#127760;</div>
+            <div><div style="font-size:13px;font-weight:700;margin-bottom:3px">Custom domain — wiremap.org</div><div style="font-size:12px;color:#4a5068">WireMap AI is now live at wiremap.org. Share it with your team.</div></div>
+          </div>
+          <div style="background:#f7f8fc;border-radius:10px;padding:14px 16px;display:flex;gap:12px">
+            <div style="font-size:20px">&#129302;</div>
+            <div><div style="font-size:13px;font-weight:700;margin-bottom:3px">AI Coaching — Enter to send</div><div style="font-size:12px;color:#4a5068">Hit Enter in the coaching box to get a response instantly. No more clicking the button.</div></div>
+          </div>
+          <div style="background:#f7f8fc;border-radius:10px;padding:14px 16px;display:flex;gap:12px">
+            <div style="font-size:20px">&#9728;</div>
+            <div><div style="font-size:13px;font-weight:700;margin-bottom:3px">Smart Pivots — context-aware routing</div><div style="font-size:12px;color:#4a5068">Pivot buttons now know where you came from. Microsoft → Licensing goes straight to Suite Explorer. Cisco → Licensing opens the Cisco EA accordion. Cybersecurity → Licensing jumps to the Consolidation Map.</div></div>
+          </div>
+          <div style="background:#f7f8fc;border-radius:10px;padding:14px 16px;display:flex;gap:12px">
+            <div style="font-size:20px">&#128196;</div>
+            <div><div style="font-size:13px;font-weight:700;margin-bottom:3px">Playbook tab — 5 full methodologies</div><div style="font-size:12px;color:#4a5068">CCS, Challenger, Modern Consultative, Carnegie, and Minto — each with When to Use, Core Moves, Pitfalls, and Do This / Not This examples.</div></div>
+          </div>
+          <div style="background:#f7f8fc;border-radius:10px;padding:14px 16px;display:flex;gap:12px">
+            <div style="font-size:20px">&#128203;</div>
+            <div><div style="font-size:13px;font-weight:700;margin-bottom:3px">Resources tab — assessments & events</div><div style="font-size:12px;color:#4a5068">7 verified assessments with full detail drawers (funding status, discovery questions, objections, Why Softchoice) plus 23 upcoming events — all searchable and filterable.</div></div>
+          </div>
+          <div style="background:#f7f8fc;border-radius:10px;padding:14px 16px;display:flex;gap:12px">
+            <div style="font-size:20px">&#128172;</div>
+            <div><div style="font-size:13px;font-weight:700;margin-bottom:3px">Ask WireMap chatbot</div><div style="font-size:12px;color:#4a5068">Floating AI assistant that knows everything in the app — assessments, events, vendor intel, methodologies, and all 17 stations. Ask it anything mid-call.</div></div>
+          </div>
+          <div style="background:#f7f8fc;border-radius:10px;padding:14px 16px;display:flex;gap:12px">
+            <div style="font-size:20px">&#128268;</div>
+            <div><div style="font-size:13px;font-weight:700;margin-bottom:3px">Licensing station — Microsoft Suite Explorer</div><div style="font-size:12px;color:#4a5068">Full capability matrix (Bus Basic through E7), Suite Qualifier (9 questions), Consolidation Map (17 displacement plays), Server Licensing, and Vendor Intel for 9 vendors.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div style="background:#e2e5f0;color:#4a5068;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px">PREVIOUS</div>
+          <div style="font-size:14px;font-weight:700">May 2026 — v1.0</div>
+        </div>
+        <div style="display:grid;gap:10px">
+          <div style="background:#f7f8fc;border-radius:10px;padding:14px 16px;display:flex;gap:12px">
+            <div style="font-size:20px">&#128506;</div>
+            <div><div style="font-size:13px;font-weight:700;margin-bottom:3px">WireMap AI — initial launch</div><div style="font-size:12px;color:#4a5068">17-station conversation map, Live Discovery Call mode, GTM Cold Call mode with 72 scripts, AI coaching, and call journal.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#0369a1;margin-bottom:2px">&#128640; Coming soon</div>
+          <div style="font-size:12px;color:#0369a1">Salesforce pre-call lookup, post-call activity logging, Win Wires</div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
