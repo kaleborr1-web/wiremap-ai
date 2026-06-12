@@ -43,7 +43,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
 .ldot{display:flex;align-items:center;gap:5px;font-size:12px;color:#4a5068}
 .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .map-layout{display:grid;grid-template-columns:1fr 340px;min-height:calc(100vh - 200px)}
-.map-canvas{padding:24px;background:#fff;border-right:1px solid var(--border)}
+.map-canvas{padding:12px 16px;background:#fff;border-right:1px solid var(--border)}
 .map-hint{text-align:center;margin-top:8px;font-size:12px;color:#8b92a8}
 .snode{cursor:pointer}
 .scirc{transition:stroke-width .15s}
@@ -328,7 +328,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
   </div>
   <div class="map-layout">
     <div class="map-canvas">
-      <svg id="msvg" viewBox="0 0 620 510" style="width:100%;height:auto">
+      <svg id="msvg" viewBox="0 0 620 510" style="width:100%;max-height:calc(100vh - 220px);height:auto">
         <g id="wg"></g><g id="ng"></g>
       </svg>
       <div class="map-hint">Tap a station to open it. Hover to highlight connections.</div>
