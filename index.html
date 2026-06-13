@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1227,6 +1224,7 @@ function selAngle(id){
   var angles=LA[curGTM?curGTM.id:'']||[];
   for(var i=0;i<angles.length;i++){if(angles[i].id===id){curAngle=angles[i];break;}}
   curScriptVar=0;
+  personaChosen=false;
   // Update chip active states
   document.querySelectorAll('.lwchip').forEach(function(btn){
     btn.classList.toggle('on', btn.getAttribute('onclick') && btn.getAttribute('onclick').indexOf("'"+id+"'")>=0);
@@ -3140,6 +3138,7 @@ var PERSONA_LIST = [
 
 var curPersona = 'it_manager';
 var curScriptVar = 0;
+var personaChosen = false;
 
 function renderPersonaBar() {
   return '<div class="persona-bar">' +
@@ -3153,8 +3152,8 @@ function renderPersonaBar() {
 function updatePitchText() {
   // Base script from the selected angle chip
   var baseScr = curAngle ? (gtmSty==='disarm' ? curAngle.disarm : curAngle.direct) : (curGTM ? (gtmSty==='disarm' ? curGTM.disarm : curGTM.direct) : '');
-  // Persona variation - only applies when a persona has been explicitly selected
-  var varScr = (curPersona && curGTM) ? getScriptVariation(curGTM.id, gtmSty) : null;
+  // Persona variation - only applies when persona explicitly chosen
+  var varScr = (personaChosen && curGTM) ? getScriptVariation(curGTM.id, gtmSty) : null;
   // Show persona variation if available, otherwise show angle base script
   var scr = varScr || baseScr;
   var saytxt = document.querySelector('.saytxt');
@@ -3178,6 +3177,7 @@ function updatePitchText() {
 function setPersona(pid) {
   curPersona = pid;
   curScriptVar = 0;
+  personaChosen = true;
   updatePitchText();
   // Update active state on buttons
   document.querySelectorAll('.persona-btn').forEach(function(btn) {
@@ -3378,4 +3378,3 @@ checkWelcome();
 
 </body>
 </html>
-<script async data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_HSxywxWYyRzJYenbKYQWTVq5k8to" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
