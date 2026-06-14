@@ -4,6 +4,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_bWF0dXJlLXNwb25nZS0xNS5jbGVyay5hY2NvdW50cy5kZXYk" src="https://mature-sponge-15.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" type="text/javascript"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WireMap AI</title>
 <style>
@@ -3221,61 +3222,15 @@ function refreshScript() {
 }
 
 
-var ACCESS_CODE = 'followthewire';
 var currentUser = null;
 
-function doLogin() {
-  var name = document.getElementById('login-name').value.trim();
-  var code = document.getElementById('login-code').value.trim().toLowerCase();
-  var err = document.getElementById('login-err');
-  
-  if (!name) {
-    err.textContent = 'Please enter your name.';
-    err.style.display = 'block';
-    return;
-  }
-  if (code !== ACCESS_CODE) {
-    err.textContent = 'Incorrect access code. Check with your team lead.';
-    err.style.display = 'block';
-    document.getElementById('login-code').value = '';
-    return;
-  }
-  
-  // Save user
-  currentUser = name;
-  try {
-    localStorage.setItem('wm_user', name);
-    localStorage.setItem('wm_auth', '1');
-  } catch(e) {}
-  
-  // Hide login
-  var overlay = document.getElementById('login-overlay');
-  if (overlay) overlay.style.display = 'none';
-  
-  // Show user badge in nav
-  showUserBadge(name);
-  
-  // Mark as welcomed so modal doesn't show again
-  try { localStorage.setItem('wm_welcomed', '1'); } catch(e) {}
-}
-
 function checkAuth() {
-  try {
-    var auth = localStorage.getItem('wm_auth');
-    var name = localStorage.getItem('wm_user');
-    if (auth === '1' && name) {
-      currentUser = name;
-      var overlay = document.getElementById('login-overlay');
-      if (overlay) overlay.style.display = 'none';
-      showUserBadge(name);
-      return true;
-    }
-  } catch(e) {}
+  // Clerk handles auth - this is called after Clerk loads
   return false;
 }
 
 function showUserBadge(name) {
-  var initials = name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+  var initials = name.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
   var existing = document.getElementById('user-badge');
   if (!existing) {
     var badge = document.createElement('div');
@@ -3283,10 +3238,7 @@ function showUserBadge(name) {
     badge.className = 'user-badge';
     badge.title = 'Click to sign out';
     badge.onclick = function() {
-      if (confirm('Sign out of WireMap AI?')) {
-        try { localStorage.removeItem('wm_auth'); localStorage.removeItem('wm_user'); } catch(e) {}
-        location.reload();
-      }
+      if (window.Clerk) window.Clerk.signOut().then(function(){ location.reload(); });
     };
     badge.innerHTML = '<div class="user-badge-avatar">' + initials + '</div><div class="user-badge-name">' + name + '</div>';
     var nav = document.querySelector('.nav-right');
@@ -3295,15 +3247,59 @@ function showUserBadge(name) {
 }
 
 function logout() {
-  try { localStorage.removeItem('wm_auth'); localStorage.removeItem('wm_user'); } catch(e) {}
-  location.reload();
+  if (window.Clerk) window.Clerk.signOut().then(function(){ location.reload(); });
+}
+
+async function initClerk() {
+  await window.Clerk.load();
+
+  var overlay = document.getElementById('login-overlay');
+  var mount = document.getElementById('clerk-mount');
+
+  if (window.Clerk.user) {
+    // Already signed in
+    currentUser = window.Clerk.user.firstName || window.Clerk.user.emailAddresses[0].emailAddress.split('@')[0];
+    if (overlay) overlay.style.display = 'none';
+    showUserBadge(currentUser);
+    try { localStorage.setItem('wm_welcomed','1'); } catch(e) {}
+    checkWelcome();
+  } else {
+    // Show Clerk sign-in component
+    if (overlay) overlay.style.display = 'flex';
+    if (mount) {
+      window.Clerk.mountSignIn(mount, {
+        appearance: {
+          elements: {
+            rootBox: { width: '100%' },
+            card: { boxShadow: 'none', padding: '0', border: 'none' },
+            headerTitle: { display: 'none' },
+            headerSubtitle: { display: 'none' },
+            socialButtonsBlockButton: { display: 'none' },
+            dividerRow: { display: 'none' },
+            footerAction: { display: 'none' }
+          }
+        }
+      });
+    }
+  }
+
+  // Listen for sign-in
+  window.Clerk.addListener(function(e) {
+    if (e.user) {
+      currentUser = e.user.firstName || e.user.emailAddresses[0].emailAddress.split('@')[0];
+      if (overlay) overlay.style.display = 'none';
+      showUserBadge(currentUser);
+      try { localStorage.setItem('wm_welcomed','1'); } catch(e2) {}
+      checkWelcome();
+    }
+  });
 }
 
 // INIT
 renderMap();
 renderLibrary();
 initChatbot();
-if(!checkAuth()){} else {checkWelcome();}
+// Clerk auth handled by window.addEventListener below
 
 
 </script>
@@ -3478,14 +3474,20 @@ if(!checkAuth()){} else {checkWelcome();}
   <div class="login-box">
     <div class="login-logo">W</div>
     <div class="login-title">Welcome to WireMap AI</div>
-    <div class="login-sub">Built for Softchoice sales reps. Enter your details to get in.</div>
-    <input class="login-field" id="login-name" type="text" placeholder="Your name (e.g. Kaleb Orr)" maxlength="50" />
-    <input class="login-field" id="login-code" type="password" placeholder="Access code" maxlength="50" onkeydown="if(event.key==='Enter')doLogin()" />
-    <button class="login-btn" onclick="doLogin()">&#9654; Enter WireMap</button>
-    <div class="login-err" id="login-err">Incorrect access code. Check with your team lead.</div>
+    <div class="login-sub">Sign in with your Softchoice email to get started.</div>
+    <div id="clerk-mount"></div>
     <div class="login-footer">WireMap AI &middot; Softchoice Internal Tool &middot; Not for external distribution</div>
   </div>
 </div>
 
+<script>
+window.addEventListener('load', function() {
+  if (window.Clerk) {
+    initClerk();
+  } else {
+    document.addEventListener('clerk:load', initClerk);
+  }
+});
+</script>
 </body>
 </html>
