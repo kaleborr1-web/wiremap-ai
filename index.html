@@ -335,6 +335,21 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
 .script-refresh{background:#f3f0ff;border:1px solid #ddd6fe;color:#7c3aed;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-top:8px;display:block;width:100%}
 .script-refresh:hover{background:#ede9fe}
 .var-badge{background:#f3f0ff;color:#7c3aed;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px}
+
+.login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,#0f1117 0%,#1a1f35 50%,#0f1117 100%);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.login-box{background:#fff;border-radius:20px;padding:40px;width:420px;max-width:90vw;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.4)}
+.login-logo{width:56px;height:56px;background:linear-gradient(135deg,#6c47ff,#d63384);border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:900;margin:0 auto 16px}
+.login-title{font-size:24px;font-weight:800;margin-bottom:6px}
+.login-sub{font-size:13px;color:#8b92a8;margin-bottom:28px}
+.login-field{width:100%;padding:11px 14px;border:1.5px solid #e2e5f0;border-radius:10px;font-size:14px;font-family:inherit;margin-bottom:12px;transition:border-color .15s;outline:none;box-sizing:border-box}
+.login-field:focus{border-color:#6c47ff}
+.login-btn{width:100%;padding:12px;background:linear-gradient(135deg,#6c47ff,#d63384);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px}
+.login-btn:hover{opacity:.9}
+.login-err{color:#e63946;font-size:12px;margin-top:8px;display:none}
+.login-footer{font-size:11px;color:#c0c4d0;margin-top:20px}
+.user-badge{display:flex;align-items:center;gap:8px;background:#f7f8fc;border:1px solid #e2e5f0;border-radius:20px;padding:4px 12px 4px 4px;cursor:pointer}
+.user-badge-avatar{width:26px;height:26px;background:linear-gradient(135deg,#6c47ff,#d63384);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
+.user-badge-name{font-size:12px;font-weight:600;color:#0f1117}
 </style>
 </head>
 <body>
@@ -353,7 +368,7 @@ nav{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;height:
   </div>
   <div class="nav-right">
     <div class="tpill" id="tpill"><div class="tdot"></div><span id="tdisp">00:00</span></div>
-    <button class="btn-new" onclick="openWhatsNew()">&#10022; What's New</button> <button style="background:none;border:1px solid #e2e5f0;color:#4a5068;padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer" onclick="startTour()">&#9654; Take the tour</button>
+    <div class="nav-right" style="display:flex;align-items:center;gap:8px"><button class="btn-new" onclick="openWhatsNew()">&#10022; What's New</button> <button style="background:none;border:1px solid #e2e5f0;color:#4a5068;padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer" onclick="startTour()">&#9654; Take the tour</button></div>
   </div>
 </nav>
 
@@ -1226,6 +1241,7 @@ function selAngle(id){
   var angles=LA[curGTM?curGTM.id:'']||[];
   for(var i=0;i<angles.length;i++){if(angles[i].id===id){curAngle=angles[i];break;}}
   curScriptVar=0;
+  personaChosen=false;
   // Update chip active states
   document.querySelectorAll('.lwchip').forEach(function(btn){
     btn.classList.toggle('on', btn.getAttribute('onclick') && btn.getAttribute('onclick').indexOf("'"+id+"'")>=0);
@@ -3139,6 +3155,7 @@ var PERSONA_LIST = [
 
 var curPersona = 'it_manager';
 var curScriptVar = 0;
+var personaChosen = false;
 
 function renderPersonaBar() {
   return '<div class="persona-bar">' +
@@ -3152,8 +3169,8 @@ function renderPersonaBar() {
 function updatePitchText() {
   // Base script from the selected angle chip
   var baseScr = curAngle ? (gtmSty==='disarm' ? curAngle.disarm : curAngle.direct) : (curGTM ? (gtmSty==='disarm' ? curGTM.disarm : curGTM.direct) : '');
-  // Persona variation - only applies when a persona has been explicitly selected
-  var varScr = (curPersona && curGTM) ? getScriptVariation(curGTM.id, gtmSty) : null;
+  // Persona variation - only applies when persona explicitly chosen
+  var varScr = (personaChosen && curGTM) ? getScriptVariation(curGTM.id, gtmSty) : null;
   // Show persona variation if available, otherwise show angle base script
   var scr = varScr || baseScr;
   var saytxt = document.querySelector('.saytxt');
@@ -3177,6 +3194,7 @@ function updatePitchText() {
 function setPersona(pid) {
   curPersona = pid;
   curScriptVar = 0;
+  personaChosen = true;
   updatePitchText();
   // Update active state on buttons
   document.querySelectorAll('.persona-btn').forEach(function(btn) {
@@ -3198,14 +3216,94 @@ function getScriptVariation(angleId, style) {
 
 function refreshScript() {
   curScriptVar++;
+  personaChosen = true;
   updatePitchText();
+}
+
+
+var ACCESS_CODE = 'followthewire';
+var currentUser = null;
+
+function doLogin() {
+  var name = document.getElementById('login-name').value.trim();
+  var code = document.getElementById('login-code').value.trim().toLowerCase();
+  var err = document.getElementById('login-err');
+  
+  if (!name) {
+    err.textContent = 'Please enter your name.';
+    err.style.display = 'block';
+    return;
+  }
+  if (code !== ACCESS_CODE) {
+    err.textContent = 'Incorrect access code. Check with your team lead.';
+    err.style.display = 'block';
+    document.getElementById('login-code').value = '';
+    return;
+  }
+  
+  // Save user
+  currentUser = name;
+  try {
+    localStorage.setItem('wm_user', name);
+    localStorage.setItem('wm_auth', '1');
+  } catch(e) {}
+  
+  // Hide login
+  var overlay = document.getElementById('login-overlay');
+  if (overlay) overlay.style.display = 'none';
+  
+  // Show user badge in nav
+  showUserBadge(name);
+  
+  // Mark as welcomed so modal doesn't show again
+  try { localStorage.setItem('wm_welcomed', '1'); } catch(e) {}
+}
+
+function checkAuth() {
+  try {
+    var auth = localStorage.getItem('wm_auth');
+    var name = localStorage.getItem('wm_user');
+    if (auth === '1' && name) {
+      currentUser = name;
+      var overlay = document.getElementById('login-overlay');
+      if (overlay) overlay.style.display = 'none';
+      showUserBadge(name);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function showUserBadge(name) {
+  var initials = name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+  var existing = document.getElementById('user-badge');
+  if (!existing) {
+    var badge = document.createElement('div');
+    badge.id = 'user-badge';
+    badge.className = 'user-badge';
+    badge.title = 'Click to sign out';
+    badge.onclick = function() {
+      if (confirm('Sign out of WireMap AI?')) {
+        try { localStorage.removeItem('wm_auth'); localStorage.removeItem('wm_user'); } catch(e) {}
+        location.reload();
+      }
+    };
+    badge.innerHTML = '<div class="user-badge-avatar">' + initials + '</div><div class="user-badge-name">' + name + '</div>';
+    var nav = document.querySelector('.nav-right');
+    if (nav) nav.insertBefore(badge, nav.firstChild);
+  }
+}
+
+function logout() {
+  try { localStorage.removeItem('wm_auth'); localStorage.removeItem('wm_user'); } catch(e) {}
+  location.reload();
 }
 
 // INIT
 renderMap();
 renderLibrary();
 initChatbot();
-checkWelcome();
+if(!checkAuth()){} else {checkWelcome();}
 
 
 </script>
@@ -3372,6 +3470,20 @@ checkWelcome();
       </div>
 
     </div>
+  </div>
+</div>
+
+
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">W</div>
+    <div class="login-title">Welcome to WireMap AI</div>
+    <div class="login-sub">Built for Softchoice sales reps. Enter your details to get in.</div>
+    <input class="login-field" id="login-name" type="text" placeholder="Your name (e.g. Kaleb Orr)" maxlength="50" />
+    <input class="login-field" id="login-code" type="password" placeholder="Access code" maxlength="50" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="login-btn" onclick="doLogin()">&#9654; Enter WireMap</button>
+    <div class="login-err" id="login-err">Incorrect access code. Check with your team lead.</div>
+    <div class="login-footer">WireMap AI &middot; Softchoice Internal Tool &middot; Not for external distribution</div>
   </div>
 </div>
 
