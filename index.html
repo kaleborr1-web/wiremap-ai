@@ -3221,40 +3221,49 @@ function refreshScript() {
 }
 
 
-var ACCESS_CODE = 'followthewire';
 var currentUser = null;
 
 function doLogin() {
   var name = document.getElementById('login-name').value.trim();
-  var code = document.getElementById('login-code').value.trim().toLowerCase();
+  var email = document.getElementById('login-email').value.trim().toLowerCase();
   var err = document.getElementById('login-err');
-  
+
   if (!name) {
     err.textContent = 'Please enter your name.';
     err.style.display = 'block';
     return;
   }
-  if (code !== ACCESS_CODE) {
-    err.textContent = 'Incorrect access code. Check with your team lead.';
+  if (!email) {
+    err.textContent = 'Please enter your work email.';
     err.style.display = 'block';
-    document.getElementById('login-code').value = '';
     return;
   }
-  
+
+  // Validate domain
+  var allowed = ['@softchoice.com', '@wwt.com'];
+  var valid = allowed.some(function(d) { return email.endsWith(d); });
+  if (!valid) {
+    err.textContent = 'Please use your @softchoice.com or @wwt.com email address.';
+    err.style.display = 'block';
+    document.getElementById('login-email').value = '';
+    return;
+  }
+
   // Save user
   currentUser = name;
   try {
     localStorage.setItem('wm_user', name);
+    localStorage.setItem('wm_email', email);
     localStorage.setItem('wm_auth', '1');
   } catch(e) {}
-  
+
   // Hide login
   var overlay = document.getElementById('login-overlay');
   if (overlay) overlay.style.display = 'none';
-  
+
   // Show user badge in nav
   showUserBadge(name);
-  
+
   // Mark as welcomed so modal doesn't show again
   try { localStorage.setItem('wm_welcomed', '1'); } catch(e) {}
 }
@@ -3478,11 +3487,11 @@ if(!checkAuth()){} else {checkWelcome();}
   <div class="login-box">
     <div class="login-logo">W</div>
     <div class="login-title">Welcome to WireMap AI</div>
-    <div class="login-sub">Built for Softchoice sales reps. Enter your details to get in.</div>
+    <div class="login-sub">Sign in with your Softchoice or WWT email to get in.</div>
     <input class="login-field" id="login-name" type="text" placeholder="Your name (e.g. Kaleb Orr)" maxlength="50" />
-    <input class="login-field" id="login-code" type="password" placeholder="Access code" maxlength="50" onkeydown="if(event.key==='Enter')doLogin()" />
+    <input class="login-field" id="login-email" type="email" placeholder="your.name@softchoice.com" maxlength="100" onkeydown="if(event.key==='Enter')doLogin()" />
     <button class="login-btn" onclick="doLogin()">&#9654; Enter WireMap</button>
-    <div class="login-err" id="login-err">Incorrect access code. Check with your team lead.</div>
+    <div class="login-err" id="login-err">Please use your @softchoice.com or @wwt.com email address.</div>
     <div class="login-footer">WireMap AI &middot; Softchoice Internal Tool &middot; Not for external distribution</div>
   </div>
 </div>
