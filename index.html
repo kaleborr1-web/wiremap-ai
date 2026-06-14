@@ -3250,46 +3250,51 @@ function logout() {
   if (window.Clerk) window.Clerk.signOut().then(function(){ location.reload(); });
 }
 
-async function initClerk() {
-  await window.Clerk.load();
-
+function initClerk() {
   var overlay = document.getElementById('login-overlay');
   var mount = document.getElementById('clerk-mount');
 
+  console.log('Clerk loaded, user:', window.Clerk.user);
+
   if (window.Clerk.user) {
-    // Already signed in
-    currentUser = window.Clerk.user.firstName || window.Clerk.user.emailAddresses[0].emailAddress.split('@')[0];
+    var u = window.Clerk.user;
+    currentUser = (u.firstName ? u.firstName + (u.lastName ? ' ' + u.lastName : '') : null) 
+      || u.emailAddresses[0].emailAddress.split('@')[0];
     if (overlay) overlay.style.display = 'none';
     showUserBadge(currentUser);
     try { localStorage.setItem('wm_welcomed','1'); } catch(e) {}
     checkWelcome();
-  } else {
-    // Show Clerk sign-in component
-    if (overlay) overlay.style.display = 'flex';
-    if (mount) {
+    return;
+  }
+
+  // Not signed in - show overlay and mount Clerk
+  if (overlay) overlay.style.display = 'flex';
+  
+  if (mount) {
+    try {
       window.Clerk.mountSignIn(mount, {
-        appearance: {
-          elements: {
-            rootBox: { width: '100%' },
-            card: { boxShadow: 'none', padding: '0', border: 'none' },
-            headerTitle: { display: 'none' },
-            headerSubtitle: { display: 'none' },
-            socialButtonsBlockButton: { display: 'none' },
-            dividerRow: { display: 'none' },
-            footerAction: { display: 'none' }
-          }
-        }
+        routing: 'hash',
+        signUpUrl: '#/sign-up',
+        afterSignInUrl: window.location.href
       });
+      console.log('Clerk SignIn mounted');
+    } catch(e) {
+      console.error('mountSignIn failed:', e);
+      // Fallback - show manual form
+      mount.innerHTML = '<p style="color:#e63946;font-size:13px">Clerk failed to load. Try refreshing.</p>';
     }
   }
 
-  // Listen for sign-in
-  window.Clerk.addListener(function(e) {
-    if (e.user) {
-      currentUser = e.user.firstName || e.user.emailAddresses[0].emailAddress.split('@')[0];
+  window.Clerk.addListener(function(resources) {
+    if (resources.user) {
+      var u = resources.user;
+      currentUser = (u.firstName ? u.firstName + (u.lastName ? ' ' + u.lastName : '') : null)
+        || u.emailAddresses[0].emailAddress.split('@')[0];
       if (overlay) overlay.style.display = 'none';
+      var old = document.getElementById('user-badge');
+      if (old) old.remove();
       showUserBadge(currentUser);
-      try { localStorage.setItem('wm_welcomed','1'); } catch(e2) {}
+      try { localStorage.setItem('wm_welcomed','1'); } catch(e) {}
       checkWelcome();
     }
   });
@@ -3481,12 +3486,18 @@ initChatbot();
 </div>
 
 <script>
-window.addEventListener('load', function() {
-  if (window.Clerk) {
+// Wait for Clerk to be ready
+function waitForClerk() {
+  if (window.Clerk && window.Clerk.loaded) {
     initClerk();
+  } else if (window.Clerk) {
+    window.Clerk.load().then(initClerk).catch(function(e){ console.error('Clerk load error:', e); });
   } else {
-    document.addEventListener('clerk:load', initClerk);
+    setTimeout(waitForClerk, 100);
   }
+}
+window.addEventListener('load', function() {
+  setTimeout(waitForClerk, 500);
 });
 </script>
 </body>
