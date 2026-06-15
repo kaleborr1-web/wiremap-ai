@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_bWF0dXJlLXNwb25nZS0xNS5jbGVyay5hY2NvdW50cy5kZXYk" src="https://mature-sponge-15.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WireMap AI</title>
 <style>
@@ -3223,10 +3223,74 @@ function refreshScript() {
 
 
 var currentUser = null;
+var supabase = null;
 
-function checkAuth() {
-  // Clerk handles auth - this is called after Clerk loads
-  return false;
+// Init Supabase
+function initSupabase() {
+  try {
+    supabase = window.supabase.createClient('https://gfdhhckadzdnhwfakdtz.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZGhoY2thZHpkbmh3ZmFrZHR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0ODkwMzQsImV4cCI6MjA5NzA2NTAzNH0.5RidCKaXnyp_UOCW8rYb6Kt1OXkoCWRj71qHTcsUuD8');
+    return true;
+  } catch(e) {
+    console.error('Supabase init failed:', e);
+    return false;
+  }
+}
+
+function showLoginForm() {
+  document.getElementById('login-screen').style.display = 'block';
+  document.getElementById('login-sent').style.display = 'none';
+  var err = document.getElementById('login-err');
+  if (err) { err.textContent = ''; err.style.display = 'none'; }
+}
+
+async function doLogin() {
+  var email = document.getElementById('login-email').value.trim().toLowerCase();
+  var err = document.getElementById('login-err');
+
+  if (!email) {
+    err.textContent = 'Please enter your work email.';
+    err.style.display = 'block';
+    return;
+  }
+
+  // Validate domain
+  var allowed = ['@softchoice.com', '@wwt.com'];
+  var validDomain = allowed.some(function(d) { return email.endsWith(d); });
+  if (!validDomain) {
+    err.textContent = 'Please use your @softchoice.com or @wwt.com email.';
+    err.style.display = 'block';
+    return;
+  }
+
+  var btn = document.querySelector('.login-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+  try {
+    var result = await supabase.auth.signInWithOtp({
+      email: email,
+      options: {
+        emailRedirectTo: window.location.origin
+      }
+    });
+
+    if (result.error) {
+      err.textContent = 'Error: ' + result.error.message;
+      err.style.display = 'block';
+      if (btn) { btn.disabled = false; btn.innerHTML = '&#9654; Send Magic Link'; }
+      return;
+    }
+
+    // Show sent screen
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('login-sent').style.display = 'block';
+    var sentEl = document.getElementById('sent-email');
+    if (sentEl) sentEl.textContent = email;
+
+  } catch(e) {
+    err.textContent = 'Something went wrong. Try again.';
+    err.style.display = 'block';
+    if (btn) { btn.disabled = false; btn.innerHTML = '&#9654; Send Magic Link'; }
+  }
 }
 
 function showUserBadge(name) {
@@ -3238,7 +3302,7 @@ function showUserBadge(name) {
     badge.className = 'user-badge';
     badge.title = 'Click to sign out';
     badge.onclick = function() {
-      if (window.Clerk) window.Clerk.signOut().then(function(){ location.reload(); });
+      if (supabase) supabase.auth.signOut().then(function(){ location.reload(); });
     };
     badge.innerHTML = '<div class="user-badge-avatar">' + initials + '</div><div class="user-badge-name">' + name + '</div>';
     var nav = document.querySelector('.nav-right');
@@ -3247,59 +3311,40 @@ function showUserBadge(name) {
 }
 
 function logout() {
-  if (window.Clerk) window.Clerk.signOut().then(function(){ location.reload(); });
+  if (supabase) supabase.auth.signOut().then(function(){ location.reload(); });
 }
 
-function initClerk() {
-  var overlay = document.getElementById('login-overlay');
-  var mount = document.getElementById('clerk-mount');
-
-  console.log('Clerk loaded, user:', window.Clerk.user);
-
-  if (window.Clerk.user) {
-    var u = window.Clerk.user;
-    currentUser = (u.firstName ? u.firstName + (u.lastName ? ' ' + u.lastName : '') : null) 
-      || u.emailAddresses[0].emailAddress.split('@')[0];
-    if (overlay) overlay.style.display = 'none';
-    showUserBadge(currentUser);
-    try { localStorage.setItem('wm_welcomed','1'); } catch(e) {}
-    checkWelcome();
-    return;
-  }
-
-  // Not signed in - show overlay and mount Clerk
-  if (overlay) overlay.style.display = 'flex';
-  
-  if (mount) {
-    try {
-      window.Clerk.mountSignIn(mount);
-      console.log('Clerk SignIn mounted');
-    } catch(e) {
-      console.error('mountSignIn failed:', e);
-      mount.innerHTML = '<p style="color:#e63946;font-size:13px">Auth failed to load. Try refreshing the page.</p>';
-    }
-  }
-
-  window.Clerk.addListener(function(resources) {
-    if (resources.user) {
-      var u = resources.user;
-      currentUser = (u.firstName ? u.firstName + (u.lastName ? ' ' + u.lastName : '') : null)
-        || u.emailAddresses[0].emailAddress.split('@')[0];
+async function checkAuth() {
+  if (!supabase) initSupabase();
+  try {
+    var result = await supabase.auth.getSession();
+    var session = result.data.session;
+    if (session && session.user) {
+      var email = session.user.email;
+      var name = email.split('@')[0].replace('.', ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+      currentUser = name;
+      var overlay = document.getElementById('login-overlay');
       if (overlay) overlay.style.display = 'none';
-      var old = document.getElementById('user-badge');
-      if (old) old.remove();
-      showUserBadge(currentUser);
+      showUserBadge(name);
       try { localStorage.setItem('wm_welcomed','1'); } catch(e) {}
       checkWelcome();
+      return true;
     }
-  });
+  } catch(e) {
+    console.error('checkAuth error:', e);
+  }
+
+  // Not logged in - show overlay
+  var overlay = document.getElementById('login-overlay');
+  if (overlay) overlay.style.display = 'flex';
+  return false;
 }
 
 // INIT
 renderMap();
 renderLibrary();
 initChatbot();
-// Clerk auth handled by window.addEventListener below
+// Supabase auth handled by window.addEventListener below
 
 
 </script>
@@ -3474,25 +3519,42 @@ initChatbot();
   <div class="login-box">
     <div class="login-logo">W</div>
     <div class="login-title">Welcome to WireMap AI</div>
-    <div class="login-sub">Sign in with your Softchoice email to get started.</div>
-    <div id="clerk-mount"></div>
+    <div id="login-screen">
+      <div class="login-sub">Sign in with your Softchoice or WWT email.</div>
+      <input class="login-field" id="login-email" type="email" placeholder="your.name@softchoice.com" maxlength="100" onkeydown="if(event.key==='Enter')doLogin()" />
+      <button class="login-btn" onclick="doLogin()">&#9654; Send Magic Link</button>
+      <div class="login-err" id="login-err"></div>
+    </div>
+    <div id="login-sent" style="display:none">
+      <div style="font-size:48px;margin-bottom:16px">&#128231;</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px">Check your email</div>
+      <div style="font-size:13px;color:#8b92a8;margin-bottom:16px">We sent a magic link to <strong id="sent-email"></strong>. Click it to sign in.</div>
+      <button onclick="showLoginForm()" style="background:none;border:none;color:#6c47ff;font-size:13px;cursor:pointer;font-weight:600">Use a different email &rarr;</button>
+    </div>
     <div class="login-footer">WireMap AI &middot; Softchoice Internal Tool &middot; Not for external distribution</div>
   </div>
 </div>
 
 <script>
-// Wait for Clerk to be ready
-function waitForClerk() {
-  if (window.Clerk && window.Clerk.loaded) {
-    initClerk();
-  } else if (window.Clerk) {
-    window.Clerk.load().then(initClerk).catch(function(e){ console.error('Clerk load error:', e); });
-  } else {
-    setTimeout(waitForClerk, 100);
-  }
-}
 window.addEventListener('load', function() {
-  setTimeout(waitForClerk, 500);
+  initSupabase();
+  checkAuth();
+
+  // Listen for auth state changes (magic link redirect)
+  supabase.auth.onAuthStateChange(function(event, session) {
+    if (event === 'SIGNED_IN' && session && session.user) {
+      var email = session.user.email;
+      var name = email.split('@')[0].replace('.', ' ').replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+      currentUser = name;
+      var overlay = document.getElementById('login-overlay');
+      if (overlay) overlay.style.display = 'none';
+      var old = document.getElementById('user-badge');
+      if (old) old.remove();
+      showUserBadge(name);
+      try { localStorage.setItem('wm_welcomed','1'); } catch(e) {}
+      checkWelcome();
+    }
+  });
 });
 </script>
 </body>
